@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { X, Package } from "lucide-react";
+import { X, Package as PackageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,7 @@ import type { Package } from "@/types/package";
 
 interface AddPackageFormProps {
   onClose: () => void;
-  onAdd: (package: Omit<Package, 'id'>) => void;
+  onAdd: (packageData: Omit<Package, 'id'>) => void;
 }
 
 export function AddPackageForm({ onClose, onAdd }: AddPackageFormProps) {
@@ -47,7 +47,7 @@ export function AddPackageForm({ onClose, onAdd }: AddPackageFormProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center space-x-2">
-              <Package className="h-5 w-5 text-blue-600" />
+              <PackageIcon className="h-5 w-5 text-blue-600" />
               <span>Registrar Nova Encomenda</span>
             </CardTitle>
             <Button variant="ghost" size="icon" onClick={onClose}>
