@@ -8,7 +8,7 @@ import type { Package as PackageType } from "@/types/package";
 interface PackageCardProps {
   package: PackageType;
   onStatusChange: (id: string, status: PackageType['status']) => void;
-  onViewDetails: (package: PackageType) => void;
+  onViewDetails: (pkg: PackageType) => void;
 }
 
 export function PackageCard({ package: pkg, onStatusChange, onViewDetails }: PackageCardProps) {
