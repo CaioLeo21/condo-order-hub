@@ -5,6 +5,7 @@ import { StatsCards } from "@/components/StatsCards";
 import { FilterTabs } from "@/components/FilterTabs";
 import { PackageCard } from "@/components/PackageCard";
 import { AddPackageForm } from "@/components/AddPackageForm";
+import { PackageDetailsModal } from "@/components/PackageDetailsModal";
 import type { Package, DashboardStats } from "@/types/package";
 
 const mockPackages: Package[] = [
@@ -53,6 +54,7 @@ const mockPackages: Package[] = [
 const Index = () => {
   const [packages, setPackages] = useState<Package[]>(mockPackages);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | Package['status']>('all');
 
@@ -114,6 +116,20 @@ const Index = () => {
     ));
   };
 
+  const handleUpdatePackage = (id: string, updatedData: Omit<Package, 'id'>) => {
+    setPackages(packages.map(pkg => 
+      pkg.id === id ? { ...updatedData, id } : pkg
+    ));
+  };
+
+  const handleDeletePackage = (id: string) => {
+    setPackages(packages.filter(pkg => pkg.id !== id));
+  };
+
+  const handleViewDetails = (pkg: Package) => {
+    setSelectedPackage(pkg);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <Header
@@ -151,6 +167,7 @@ const Index = () => {
                   key={pkg.id}
                   package={pkg}
                   onStatusChange={handleStatusChange}
+                  onViewDetails={handleViewDetails}
                 />
               ))}
             </div>
@@ -162,6 +179,16 @@ const Index = () => {
         <AddPackageForm
           onClose={() => setShowAddForm(false)}
           onAdd={handleAddPackage}
+        />
+      )}
+
+      {selectedPackage && (
+        <PackageDetailsModal
+          package={selectedPackage}
+          isOpen={!!selectedPackage}
+          onClose={() => setSelectedPackage(null)}
+          onUpdate={handleUpdatePackage}
+          onDelete={handleDeletePackage}
         />
       )}
     </div>

@@ -8,9 +8,10 @@ import type { Package as PackageType } from "@/types/package";
 interface PackageCardProps {
   package: PackageType;
   onStatusChange: (id: string, status: PackageType['status']) => void;
+  onViewDetails: (package: PackageType) => void;
 }
 
-export function PackageCard({ package: pkg, onStatusChange }: PackageCardProps) {
+export function PackageCard({ package: pkg, onStatusChange, onViewDetails }: PackageCardProps) {
   const getStatusConfig = (status: PackageType['status']) => {
     switch (status) {
       case 'received':
@@ -49,7 +50,10 @@ export function PackageCard({ package: pkg, onStatusChange }: PackageCardProps) 
   const StatusIcon = statusConfig.icon;
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
+    <Card 
+      className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer"
+      onClick={() => onViewDetails(pkg)}
+    >
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-3">
@@ -97,7 +101,7 @@ export function PackageCard({ package: pkg, onStatusChange }: PackageCardProps) 
              pkg.size === 'medium' ? 'Média' : 'Grande'}
           </Badge>
 
-          <div className="flex space-x-2">
+          <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
             {pkg.status === 'received' && (
               <Button
                 size="sm"
