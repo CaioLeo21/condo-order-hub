@@ -54,61 +54,62 @@ export function PackageCard({ package: pkg, onStatusChange, onViewDetails }: Pac
       className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer"
       onClick={() => onViewDetails(pkg)}
     >
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between mb-4">
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <Package className="h-5 w-5 text-blue-600" />
+            <div className="p-2 bg-blue-50 rounded-lg flex-shrink-0">
+              <Package className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
             </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">{pkg.recipientName}</h3>
-              <p className="text-sm text-gray-600">Unidade {pkg.recipientUnit}</p>
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{pkg.recipientName}</h3>
+              <p className="text-xs sm:text-sm text-gray-600">Unidade {pkg.recipientUnit}</p>
             </div>
           </div>
-          <Badge className={statusConfig.color}>
+          <Badge className={`${statusConfig.color} flex-shrink-0`}>
             <StatusIcon className="h-3 w-3 mr-1" />
-            {statusConfig.label}
+            <span className="hidden sm:inline">{statusConfig.label}</span>
           </Badge>
         </div>
 
         <div className="space-y-2 mb-4">
-          <div className="flex items-center text-sm text-gray-600">
-            <Truck className="h-4 w-4 mr-2" />
-            <span>{pkg.senderCompany}</span>
+          <div className="flex items-center text-xs sm:text-sm text-gray-600">
+            <Truck className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0" />
+            <span className="truncate">{pkg.senderCompany}</span>
           </div>
           
-          <div className="flex items-center text-sm text-gray-600">
-            <Calendar className="h-4 w-4 mr-2" />
+          <div className="flex items-center text-xs sm:text-sm text-gray-600">
+            <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0" />
             <span>{new Date(pkg.receivedDate).toLocaleDateString('pt-BR')} às {pkg.receivedTime}</span>
           </div>
           
-          <div className="flex items-center text-sm text-gray-600">
-            <User className="h-4 w-4 mr-2" />
-            <span>Recebido por: {pkg.receivedBy}</span>
+          <div className="flex items-center text-xs sm:text-sm text-gray-600">
+            <User className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0" />
+            <span className="truncate">Recebido por: {pkg.receivedBy}</span>
           </div>
 
           {pkg.trackingCode && (
-            <div className="flex items-center text-sm text-gray-600">
-              <Building className="h-4 w-4 mr-2" />
-              <span>Código: {pkg.trackingCode}</span>
+            <div className="flex items-center text-xs sm:text-sm text-gray-600">
+              <Building className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0" />
+              <span className="truncate">Código: {pkg.trackingCode}</span>
             </div>
           )}
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <Badge className={getSizeColor(pkg.size)}>
             {pkg.size === 'small' ? 'Pequena' : 
              pkg.size === 'medium' ? 'Média' : 'Grande'}
           </Badge>
 
-          <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto" onClick={(e) => e.stopPropagation()}>
             {pkg.status === 'received' && (
               <Button
                 size="sm"
                 onClick={() => onStatusChange(pkg.id, 'collected')}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto text-xs"
               >
-                Marcar como Retirada
+                <span className="sm:hidden">Retirada</span>
+                <span className="hidden sm:inline">Marcar como Retirada</span>
               </Button>
             )}
             
@@ -116,9 +117,10 @@ export function PackageCard({ package: pkg, onStatusChange, onViewDetails }: Pac
               <Button
                 size="sm"
                 onClick={() => onStatusChange(pkg.id, 'received')}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto text-xs"
               >
-                Confirmar Recebimento
+                <span className="sm:hidden">Receber</span>
+                <span className="hidden sm:inline">Confirmar Recebimento</span>
               </Button>
             )}
           </div>
