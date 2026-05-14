@@ -8,8 +8,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Residents from "./pages/Residents";
-import Doormen from "./pages/Doormen";
-import Properties from "./pages/Properties";
+import Doormen from "./pages/Doorman";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -46,13 +45,8 @@ function AppContent() {
         </ProtectedRoute>
       } />
       <Route path="/doormen" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiredRole="admin">
           <Doormen />
-        </ProtectedRoute>
-      } />
-      <Route path="/properties" element={
-        <ProtectedRoute>
-          <Properties />
         </ProtectedRoute>
       } />
       <Route path="*" element={<NotFound />} />

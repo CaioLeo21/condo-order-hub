@@ -1,11 +1,14 @@
 
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import type { User } from '@/types/auth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  requiredRole?: User['role'];
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -21,6 +24,10 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!user) {
     return null; // O App.tsx vai redirecionar para login
+  }
+
+  if (requiredRole && user.role !== requiredRole) {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

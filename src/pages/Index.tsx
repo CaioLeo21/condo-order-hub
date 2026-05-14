@@ -6,6 +6,7 @@ import { FilterTabs } from "@/components/FilterTabs";
 import { PackageCard } from "@/components/PackageCard";
 import { AddPackageForm } from "@/components/AddPackageForm";
 import { PackageDetailsModal } from "@/components/PackageDetailsModal";
+import { usePermissions } from "@/hooks/usePermissions";
 import type { Package, DashboardStats } from "@/types/package";
 
 const mockPackages: Package[] = [
@@ -44,7 +45,7 @@ const mockPackages: Package[] = [
     senderCompany: 'Magazine Luiza',
     receivedDate: '2024-01-14',
     receivedTime: '11:20',
-    status: 'pending',
+    status: 'received',
     description: 'Eletrodoméstico',
     size: 'large',
     receivedBy: 'Porteiro João',
@@ -52,6 +53,7 @@ const mockPackages: Package[] = [
 ];
 
 const Index = () => {
+  const { canDeletePackages } = usePermissions();
   const [packages, setPackages] = useState<Package[]>(mockPackages);
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
@@ -85,7 +87,6 @@ const Index = () => {
       total: packages.length,
       received: packages.filter(pkg => pkg.receivedDate === today && pkg.status === 'received').length,
       collected: packages.filter(pkg => pkg.status === 'collected').length,
-      pending: packages.filter(pkg => pkg.status === 'pending').length,
     };
   }, [packages]);
 
@@ -93,7 +94,6 @@ const Index = () => {
     all: packages.length,
     received: packages.filter(pkg => pkg.status === 'received').length,
     collected: packages.filter(pkg => pkg.status === 'collected').length,
-    pending: packages.filter(pkg => pkg.status === 'pending').length,
   }), [packages]);
 
   const handleAddPackage = (newPackage: Omit<Package, 'id'>) => {
@@ -161,7 +161,7 @@ const Index = () => {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
               {filteredPackages.map((pkg) => (
                 <PackageCard
                   key={pkg.id}
@@ -189,6 +189,7 @@ const Index = () => {
           onClose={() => setSelectedPackage(null)}
           onUpdate={handleUpdatePackage}
           onDelete={handleDeletePackage}
+          canDelete={canDeletePackages}
         />
       )}
     </div>
