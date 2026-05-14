@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Edit, Trash2, Calendar, User, Building, Truck, Package as PackageIcon } from "lucide-react";
+import { Edit, Trash2, Calendar, User, Package as PackageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,14 +32,16 @@ interface PackageDetailsModalProps {
   onClose: () => void;
   onUpdate: (id: string, updatedPackage: Omit<Package, 'id'>) => void;
   onDelete: (id: string) => void;
+  canDelete?: boolean;
 }
 
-export function PackageDetailsModal({ 
-  package: pkg, 
-  isOpen, 
-  onClose, 
-  onUpdate, 
-  onDelete 
+export function PackageDetailsModal({
+  package: pkg,
+  isOpen,
+  onClose,
+  onUpdate,
+  onDelete,
+  canDelete = true,
 }: PackageDetailsModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -49,8 +51,7 @@ export function PackageDetailsModal({
     trackingCode: pkg.trackingCode || '',
     description: pkg.description || '',
     size: pkg.size,
-    receivedBy: pkg.receivedBy,
-    notes: pkg.notes || ''
+    receivedBy: pkg.receivedBy
   });
 
   const handleSave = () => {
@@ -73,8 +74,7 @@ export function PackageDetailsModal({
       trackingCode: pkg.trackingCode || '',
       description: pkg.description || '',
       size: pkg.size,
-      receivedBy: pkg.receivedBy,
-      notes: pkg.notes || ''
+      receivedBy: pkg.receivedBy
     });
     setIsEditing(false);
   };
@@ -85,13 +85,17 @@ export function PackageDetailsModal({
         return { color: 'bg-blue-100 text-blue-800', label: 'Recebida' };
       case 'collected':
         return { color: 'bg-green-100 text-green-800', label: 'Retirada' };
-      case 'pending':
-        return { color: 'bg-red-100 text-red-800', label: 'Pendente' };
     }
   };
 
   const getSizeLabel = (size: Package['size']) => {
     return size === 'small' ? 'Pequena' : size === 'medium' ? 'Média' : 'Grande';
+  };
+
+  const getSizeColor = (size: Package['size']) => {
+    if (size === 'small') return 'bg-gray-100 text-gray-800';
+    if (size === 'medium') return 'bg-yellow-100 text-yellow-800';
+    return 'bg-red-100 text-red-800';
   };
 
   const statusConfig = getStatusConfig(pkg.status);
@@ -100,7 +104,7 @@ export function PackageDetailsModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between pr-8">
             <DialogTitle className="flex items-center space-x-2">
               <PackageIcon className="h-5 w-5 text-blue-600" />
               <span>Detalhes da Encomenda</span>
@@ -112,7 +116,7 @@ export function PackageDetailsModal({
                     <Edit className="h-4 w-4 mr-1" />
                     Editar
                   </Button>
-                  <AlertDialog>
+                  {canDelete && <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="destructive" size="sm">
                         <Trash2 className="h-4 w-4 mr-1" />
@@ -139,7 +143,7 @@ export function PackageDetailsModal({
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
-                  </AlertDialog>
+                  </AlertDialog>}
                 </>
               )}
             </div>
@@ -147,12 +151,12 @@ export function PackageDetailsModal({
         </DialogHeader>
 
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
             <Badge className={statusConfig.color}>
               {statusConfig.label}
             </Badge>
-            <Badge className="bg-gray-100 text-gray-800">
-              {getSizeLabel(pkg.size)}
+            <Badge className={`${getSizeColor(pkg.size)} font-semibold px-3`}>
+              Encomenda {getSizeLabel(pkg.size)}
             </Badge>
           </div>
 
@@ -237,16 +241,6 @@ export function PackageDetailsModal({
                 />
               </div>
 
-              <div>
-                <Label htmlFor="notes">Observações</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                  rows={2}
-                />
-              </div>
-
               <div className="flex justify-end space-x-2 pt-4">
                 <Button variant="outline" onClick={handleCancel}>
                   Cancelar
@@ -319,12 +313,6 @@ export function PackageDetailsModal({
                 </div>
               )}
 
-              {pkg.notes && (
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Observações</label>
-                  <p className="text-gray-900 mt-1">{pkg.notes}</p>
-                </div>
-              )}
             </div>
           )}
         </div>

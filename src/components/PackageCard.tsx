@@ -1,5 +1,5 @@
 
-import { Package, Calendar, User, Building, Truck, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { Package, Calendar, User, Building, Truck, CheckCircle, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,12 +26,6 @@ export function PackageCard({ package: pkg, onStatusChange, onViewDetails }: Pac
           icon: CheckCircle,
           label: 'Retirada'
         };
-      case 'pending':
-        return {
-          color: 'bg-red-100 text-red-800',
-          icon: AlertCircle,
-          label: 'Pendente'
-        };
     }
   };
 
@@ -50,11 +44,11 @@ export function PackageCard({ package: pkg, onStatusChange, onViewDetails }: Pac
   const StatusIcon = statusConfig.icon;
 
   return (
-    <Card 
-      className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer"
+    <Card
+      className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer h-full"
       onClick={() => onViewDetails(pkg)}
     >
-      <CardContent className="p-4 sm:p-6">
+      <CardContent className="p-4 sm:p-6 flex flex-col h-full">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-blue-50 rounded-lg flex-shrink-0">
@@ -71,7 +65,7 @@ export function PackageCard({ package: pkg, onStatusChange, onViewDetails }: Pac
           </Badge>
         </div>
 
-        <div className="space-y-2 mb-4">
+        <div className="space-y-2 mb-4 flex-1">
           <div className="flex items-center text-xs sm:text-sm text-gray-600">
             <Truck className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0" />
             <span className="truncate">{pkg.senderCompany}</span>
@@ -95,13 +89,13 @@ export function PackageCard({ package: pkg, onStatusChange, onViewDetails }: Pac
           )}
         </div>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-          <Badge className={getSizeColor(pkg.size)}>
-            {pkg.size === 'small' ? 'Pequena' : 
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mt-auto pt-4 border-t border-gray-100">
+          <Badge className={`${getSizeColor(pkg.size)} font-semibold px-3`}>
+            Encomenda {pkg.size === 'small' ? 'Pequena' :
              pkg.size === 'medium' ? 'Média' : 'Grande'}
           </Badge>
 
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="min-h-[32px] flex items-center" onClick={(e) => e.stopPropagation()}>
             {pkg.status === 'received' && (
               <Button
                 size="sm"
@@ -110,17 +104,6 @@ export function PackageCard({ package: pkg, onStatusChange, onViewDetails }: Pac
               >
                 <span className="sm:hidden">Retirada</span>
                 <span className="hidden sm:inline">Marcar como Retirada</span>
-              </Button>
-            )}
-            
-            {pkg.status === 'pending' && (
-              <Button
-                size="sm"
-                onClick={() => onStatusChange(pkg.id, 'received')}
-                className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto text-xs"
-              >
-                <span className="sm:hidden">Receber</span>
-                <span className="hidden sm:inline">Confirmar Recebimento</span>
               </Button>
             )}
           </div>

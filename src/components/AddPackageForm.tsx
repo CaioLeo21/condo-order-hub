@@ -22,8 +22,7 @@ export function AddPackageForm({ onClose, onAdd }: AddPackageFormProps) {
     trackingCode: '',
     description: '',
     size: 'medium' as Package['size'],
-    receivedBy: '',
-    notes: ''
+    receivedBy: ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -140,17 +139,6 @@ export function AddPackageForm({ onClose, onAdd }: AddPackageFormProps) {
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
                 placeholder="Descrição da encomenda (opcional)"
                 rows={3}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="notes">Observações</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                placeholder="Observações adicionais (opcional)"
-                rows={2}
               />
             </div>
 
