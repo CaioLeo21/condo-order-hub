@@ -1,73 +1,141 @@
-# Welcome to your Lovable project
+> **Documentação gerada por IA (Claude) e revisada por Leandro Valenca Silva.**
 
-## Project info
+---
 
-**URL**: https://lovable.dev/projects/b42cb079-5444-4346-9e24-4459fb5ccefe
+# Condo Order Hub
 
-## How can I edit this code?
+Sistema de gerenciamento de encomendas e cadastros para condomínios. Permite que porteiros registrem e controlem a entrada e retirada de pacotes, além de manter o cadastro de moradores e porteiros.
 
-There are several ways of editing your application.
+---
 
-**Use Lovable**
+## Rodando localmente
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/b42cb079-5444-4346-9e24-4459fb5ccefe) and start prompting.
+**Pré-requisito:** Node.js 18+ instalado.
 
-Changes made via Lovable will be committed automatically to this repo.
+```bash
+# Instalar dependências
+npm install
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Iniciar servidor de desenvolvimento
 npm run dev
+
+# Build para produção
+npm run build
+
+# Lint
+npm run lint
 ```
 
-**Edit a file directly in GitHub**
+O servidor sobe em `http://localhost:8080` por padrão.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+---
 
-**Use GitHub Codespaces**
+## Acesso ao sistema
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+O sistema possui autenticação. Todos os usuários de teste têm senha `123456`.
 
-## What technologies are used for this project?
+| Email | Perfil | Condomínio |
+|---|---|---|
+| `admin@vistaverde.com` | Administrador | Residencial Vista Verde |
+| `porteiro@vistaverde.com` | Porteiro | Residencial Vista Verde |
+| `admin@solarbosque.com` | Administrador | Condomínio Solar do Bosque |
+| `admin@torreazul.com` | Administrador | Edifício Torre Azul |
 
-This project is built with:
+A sessão é mantida via `localStorage` — o login persiste ao recarregar a página.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+---
 
-## How can I deploy this project?
+## Perfis e permissões
 
-Simply open [Lovable](https://lovable.dev/projects/b42cb079-5444-4346-9e24-4459fb5ccefe) and click on Share -> Publish.
+| Ação | Porteiro | Administrador |
+|---|:---:|:---:|
+| Ver e registrar encomendas | ✓ | ✓ |
+| Marcar encomenda como retirada | ✓ | ✓ |
+| Editar encomenda | ✓ | ✓ |
+| Excluir encomenda | — | ✓ |
+| Ver moradores | ✓ | ✓ |
+| Adicionar / editar / excluir morador | — | ✓ |
+| Acessar módulo de Porteiros | — | ✓ |
 
-## Can I connect a custom domain to my Lovable project?
+A navegação se adapta ao perfil: o item **Porteiros** só aparece para administradores.
 
-Yes, you can!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Módulos
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Encomendas (`/`)
+
+Painel principal. Exibe as encomendas registradas no condomínio com busca e filtros.
+
+**Registrar encomenda** — Clique em "Nova Encomenda" e preencha:
+- Destinatário e unidade
+- Empresa remetente
+- Código de rastreamento (opcional)
+- Tamanho: Pequena / Média / Grande
+- Porteiro que recebeu
+- Descrição (opcional)
+
+**Status possíveis:**
+- `Recebida` — pacote na portaria, aguardando retirada
+- `Retirada` — pacote retirado pelo morador
+
+**Filtros disponíveis:** Todas · Recebidas · Retiradas · Busca por nome, unidade, empresa ou código.
+
+**Ações por card:**
+- Clique no card → abre modal com detalhes completos e opção de editar
+- Botão "Marcar como Retirada" → registra data/hora de retirada automaticamente
+- Excluir → disponível apenas para administradores, com confirmação
+
+**Indicadores no topo:**
+- Total de encomendas cadastradas
+- Recebidas hoje (ainda na portaria)
+- Total já retiradas
+
+---
+
+### Moradores (`/residents`)
+
+Cadastro de moradores do condomínio.
+
+**Campos:**
+- Nome e telefone
+- Unidade e Bloco (opcional)
+- Tipo: `Proprietário` · `Inquilino` · `Outro` (campo adicional de descrição aparece quando "Outro" é selecionado)
+- Status: `Ativo` · `Inativo`
+
+Porteiros podem visualizar a lista. Apenas administradores podem adicionar, editar ou excluir moradores.
+
+---
+
+### Porteiros (`/doormen`) — somente Admin
+
+Cadastro dos porteiros do condomínio.
+
+**Campos:**
+- Nome, CPF e telefone
+- Turno: `Manhã` · `Tarde` · `Noite`
+- Status: `Ativo` · `Inativo`
+
+Porteiros não têm acesso a esta seção. A rota é protegida e o item de menu não aparece para o perfil `porteiro`.
+
+---
+
+## Tecnologias
+
+- **Vite + React 18 + TypeScript**
+- **shadcn/ui** — biblioteca de componentes (base slate, variáveis CSS)
+- **Tailwind CSS** — estilização
+- **React Router v6** — roteamento SPA
+- **TanStack Query** — configurado como provider, ainda não utilizado para fetching
+- **Lucide React** — ícones
+
+---
+
+## Observações técnicas
+
+- **Sem backend:** todos os dados vivem em `useState` com arrays mockados dentro de cada página. Nenhuma chamada de rede é feita.
+- **Autenticação mockada:** credenciais hardcoded em `src/contexts/AuthContext.tsx`. Sessão salva em `localStorage`.
+- **Permissões centralizadas:** use sempre o hook `usePermissions()` — nunca verifique `user.role` diretamente em componentes.
+- **Alias de importação:** `@/` aponta para `src/`. Use em todos os imports.
+- **Sem testes:** não há suite de testes configurada.
+
