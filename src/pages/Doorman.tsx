@@ -11,30 +11,16 @@ const mockDoormen: Doorman[] = [
     id: '1',
     name: 'João Silva',
     cpf: '111.222.333-44',
-    email: 'joao@email.com',
     phone: '(11) 55555-5555',
     shift: 'morning',
-    hireDate: '2023-01-10',
-    emergencyContact: {
-      name: 'Maria Silva',
-      phone: '(11) 44444-4444',
-      relationship: 'Esposa'
-    },
     status: 'active'
   },
   {
     id: '2',
     name: 'Pedro Santos',
     cpf: '555.666.777-88',
-    email: 'pedro@email.com',
     phone: '(11) 33333-3333',
     shift: 'night',
-    hireDate: '2023-03-15',
-    emergencyContact: {
-      name: 'Ana Santos',
-      phone: '(11) 22222-2222',
-      relationship: 'Filha'
-    },
     status: 'active'
   }
 ];
@@ -50,8 +36,7 @@ const Doormen = () => {
     
     return doormen.filter(doorman =>
       doorman.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doorman.shift.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doorman.email.toLowerCase().includes(searchTerm.toLowerCase())
+      doorman.shift.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [doormen, searchTerm]);
 

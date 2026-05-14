@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2, Edit2, Save, X } from "lucide-react";
 import type { Doorman } from "@/types/doorman";
 
@@ -51,8 +52,8 @@ export function DoormanDetailsModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            Detalhes do Porteiro
+          <div className="flex items-center justify-between pr-8">
+            <DialogTitle>Detalhes do Porteiro</DialogTitle>
             <div className="flex space-x-2">
               {!isEditing && (
                 <Button variant="outline" size="icon" onClick={() => setIsEditing(true)}>
@@ -73,7 +74,7 @@ export function DoormanDetailsModal({
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
-          </DialogTitle>
+          </div>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -110,17 +111,6 @@ export function DoormanDetailsModal({
               )}
             </div>
             <div>
-              <Label>Email</Label>
-              {isEditing ? (
-                <Input
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                />
-              ) : (
-                <p className="text-sm text-gray-600">{doorman.email}</p>
-              )}
-            </div>
-            <div>
               <Label>Telefone</Label>
               {isEditing ? (
                 <Input
@@ -133,22 +123,48 @@ export function DoormanDetailsModal({
             </div>
             <div>
               <Label>Turno</Label>
-              <p className="text-sm text-gray-600">{getShiftLabel(doorman.shift)}</p>
+              {isEditing ? (
+                <Select
+                  value={formData.shift}
+                  onValueChange={(value: Doorman['shift']) =>
+                    setFormData({ ...formData, shift: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="morning">Manhã</SelectItem>
+                    <SelectItem value="afternoon">Tarde</SelectItem>
+                    <SelectItem value="night">Noite</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="text-sm text-gray-600">{getShiftLabel(doorman.shift)}</p>
+              )}
             </div>
             <div>
-              <Label>Data de Contratação</Label>
-              <p className="text-sm text-gray-600">
-                {new Date(doorman.hireDate).toLocaleDateString('pt-BR')}
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <Label>Contato de Emergência</Label>
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <p><strong>Nome:</strong> {doorman.emergencyContact.name}</p>
-              <p><strong>Telefone:</strong> {doorman.emergencyContact.phone}</p>
-              <p><strong>Relacionamento:</strong> {doorman.emergencyContact.relationship}</p>
+              <Label>Status</Label>
+              {isEditing ? (
+                <Select
+                  value={formData.status}
+                  onValueChange={(value: Doorman['status']) =>
+                    setFormData({ ...formData, status: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Ativo</SelectItem>
+                    <SelectItem value="inactive">Inativo</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="text-sm text-gray-600">
+                  {doorman.status === 'active' ? 'Ativo' : 'Inativo'}
+                </p>
+              )}
             </div>
           </div>
 

@@ -16,15 +16,8 @@ export function AddDoormanForm({ onClose, onAdd }: AddDoormanFormProps) {
   const [formData, setFormData] = useState({
     name: '',
     cpf: '',
-    email: '',
     phone: '',
     shift: 'morning' as const,
-    hireDate: '',
-    emergencyContact: {
-      name: '',
-      phone: '',
-      relationship: ''
-    },
     notes: '',
     status: 'active' as const
   });
@@ -37,13 +30,6 @@ export function AddDoormanForm({ onClose, onAdd }: AddDoormanFormProps) {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleEmergencyContactChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      emergencyContact: { ...prev.emergencyContact, [field]: value }
-    }));
   };
 
   return (
@@ -77,16 +63,6 @@ export function AddDoormanForm({ onClose, onAdd }: AddDoormanFormProps) {
                 />
               </div>
               <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  required
-                />
-              </div>
-              <div>
                 <Label htmlFor="phone">Telefone</Label>
                 <Input
                   id="phone"
@@ -107,37 +83,6 @@ export function AddDoormanForm({ onClose, onAdd }: AddDoormanFormProps) {
                     <SelectItem value="night">Noite</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-              <div>
-                <Label htmlFor="hireDate">Data de Contratação</Label>
-                <Input
-                  id="hireDate"
-                  type="date"
-                  value={formData.hireDate}
-                  onChange={(e) => handleInputChange('hireDate', e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Contato de Emergência</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <Input
-                  placeholder="Nome"
-                  value={formData.emergencyContact.name}
-                  onChange={(e) => handleEmergencyContactChange('name', e.target.value)}
-                />
-                <Input
-                  placeholder="Telefone"
-                  value={formData.emergencyContact.phone}
-                  onChange={(e) => handleEmergencyContactChange('phone', e.target.value)}
-                />
-                <Input
-                  placeholder="Relacionamento"
-                  value={formData.emergencyContact.relationship}
-                  onChange={(e) => handleEmergencyContactChange('relationship', e.target.value)}
-                />
               </div>
             </div>
 
