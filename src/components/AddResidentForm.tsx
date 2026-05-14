@@ -14,22 +14,22 @@ interface AddResidentFormProps {
 }
 
 export function AddResidentForm({ onClose, onAdd }: AddResidentFormProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    phone: string;
+    unit: string;
+    building: string;
+    residentType: 'owner' | 'tenant' | 'other';
+    residentTypeDescription: string;
+    status: 'active' | 'inactive';
+  }>({
     name: '',
-    cpf: '',
-    email: '',
     phone: '',
     unit: '',
     building: '',
-    isOwner: true,
-    emergencyContact: {
-      name: '',
-      phone: '',
-      relationship: ''
-    },
-    moveInDate: '',
-    notes: '',
-    status: 'active' as const
+    residentType: 'owner',
+    residentTypeDescription: '',
+    status: 'active'
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -40,13 +40,6 @@ export function AddResidentForm({ onClose, onAdd }: AddResidentFormProps) {
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleEmergencyContactChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      emergencyContact: { ...prev.emergencyContact, [field]: value }
-    }));
   };
 
   return (
@@ -67,25 +60,6 @@ export function AddResidentForm({ onClose, onAdd }: AddResidentFormProps) {
                   id="name"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="cpf">CPF</Label>
-                <Input
-                  id="cpf"
-                  value={formData.cpf}
-                  onChange={(e) => handleInputChange('cpf', e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
                   required
                 />
               </div>
@@ -116,49 +90,34 @@ export function AddResidentForm({ onClose, onAdd }: AddResidentFormProps) {
                 />
               </div>
               <div>
-                <Label htmlFor="moveInDate">Data de Mudança</Label>
-                <Input
-                  id="moveInDate"
-                  type="date"
-                  value={formData.moveInDate}
-                  onChange={(e) => handleInputChange('moveInDate', e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="isOwner">Tipo</Label>
-                <Select onValueChange={(value) => handleInputChange('isOwner', value === 'true')}>
+                <Label htmlFor="residentType">Tipo de morador</Label>
+                <Select
+                  value={formData.residentType}
+                  onValueChange={(value) => handleInputChange('residentType', value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="true">Proprietário</SelectItem>
-                    <SelectItem value="false">Inquilino</SelectItem>
+                    <SelectItem value="owner">Proprietário</SelectItem>
+                    <SelectItem value="tenant">Inquilino</SelectItem>
+                    <SelectItem value="other">Outro</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Contato de Emergência</Label>
-              <div className="grid grid-cols-3 gap-4">
+            {formData.residentType === 'other' && (
+              <div>
+                <Label htmlFor="residentTypeDescription">Descrição</Label>
                 <Input
-                  placeholder="Nome"
-                  value={formData.emergencyContact.name}
-                  onChange={(e) => handleEmergencyContactChange('name', e.target.value)}
-                />
-                <Input
-                  placeholder="Telefone"
-                  value={formData.emergencyContact.phone}
-                  onChange={(e) => handleEmergencyContactChange('phone', e.target.value)}
-                />
-                <Input
-                  placeholder="Relacionamento"
-                  value={formData.emergencyContact.relationship}
-                  onChange={(e) => handleEmergencyContactChange('relationship', e.target.value)}
+                  id="residentTypeDescription"
+                  value={formData.residentTypeDescription}
+                  onChange={(e) => handleInputChange('residentTypeDescription', e.target.value)}
+                  placeholder="Ex: Familiar, Funcionário..."
                 />
               </div>
-            </div>
+            )}
 
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={onClose}>

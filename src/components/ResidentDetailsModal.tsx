@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2, Edit2, Save, X } from "lucide-react";
 import type { Resident } from "@/types/resident";
 
@@ -14,14 +15,24 @@ interface ResidentDetailsModalProps {
   onClose: () => void;
   onUpdate: (id: string, data: Omit<Resident, 'id'>) => void;
   onDelete: (id: string) => void;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }
 
-export function ResidentDetailsModal({ 
-  resident, 
-  isOpen, 
-  onClose, 
-  onUpdate, 
-  onDelete 
+function residentTypeLabel(type: Resident['residentType'], description?: string) {
+  if (type === 'owner') return 'Proprietário';
+  if (type === 'tenant') return 'Inquilino';
+  return 'Outro';
+}
+
+export function ResidentDetailsModal({
+  resident,
+  isOpen,
+  onClose,
+  onUpdate,
+  onDelete,
+  canEdit = true,
+  canDelete = true,
 }: ResidentDetailsModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(resident);
@@ -42,15 +53,15 @@ export function ResidentDetailsModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            Detalhes do Morador
+          <div className="flex items-center justify-between pr-8">
+            <DialogTitle>Detalhes do Morador</DialogTitle>
             <div className="flex space-x-2">
-              {!isEditing && (
+              {canEdit && !isEditing && (
                 <Button variant="outline" size="icon" onClick={() => setIsEditing(true)}>
                   <Edit2 className="h-4 w-4" />
                 </Button>
               )}
-              {isEditing && (
+              {canEdit && isEditing && (
                 <>
                   <Button variant="outline" size="icon" onClick={handleSave}>
                     <Save className="h-4 w-4" />
@@ -60,11 +71,13 @@ export function ResidentDetailsModal({
                   </Button>
                 </>
               )}
-              <Button variant="destructive" size="icon" onClick={handleDelete}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              {canDelete && (
+                <Button variant="destructive" size="icon" onClick={handleDelete}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
-          </DialogTitle>
+          </div>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -73,7 +86,7 @@ export function ResidentDetailsModal({
               {resident.status === 'active' ? 'Ativo' : 'Inativo'}
             </Badge>
             <Badge className="bg-blue-100 text-blue-800">
-              {resident.isOwner ? 'Proprietário' : 'Inquilino'}
+              {residentTypeLabel(resident.residentType, resident.residentTypeDescription)}
             </Badge>
           </div>
 
@@ -83,32 +96,10 @@ export function ResidentDetailsModal({
               {isEditing ? (
                 <Input
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
               ) : (
                 <p className="text-sm text-gray-600">{resident.name}</p>
-              )}
-            </div>
-            <div>
-              <Label>CPF</Label>
-              {isEditing ? (
-                <Input
-                  value={formData.cpf}
-                  onChange={(e) => setFormData({...formData, cpf: e.target.value})}
-                />
-              ) : (
-                <p className="text-sm text-gray-600">{resident.cpf}</p>
-              )}
-            </div>
-            <div>
-              <Label>Email</Label>
-              {isEditing ? (
-                <Input
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                />
-              ) : (
-                <p className="text-sm text-gray-600">{resident.email}</p>
               )}
             </div>
             <div>
@@ -116,7 +107,7 @@ export function ResidentDetailsModal({
               {isEditing ? (
                 <Input
                   value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 />
               ) : (
                 <p className="text-sm text-gray-600">{resident.phone}</p>
@@ -127,35 +118,91 @@ export function ResidentDetailsModal({
               {isEditing ? (
                 <Input
                   value={formData.unit}
-                  onChange={(e) => setFormData({...formData, unit: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
                 />
               ) : (
                 <p className="text-sm text-gray-600">
-                  {resident.unit}{resident.building ? ` - Bloco ${resident.building}` : ''}
+                  {resident.unit}
                 </p>
               )}
             </div>
             <div>
-              <Label>Data de Mudança</Label>
-              <p className="text-sm text-gray-600">
-                {new Date(resident.moveInDate).toLocaleDateString('pt-BR')}
-              </p>
+              <Label>Bloco</Label>
+              {isEditing ? (
+                <Input
+                  value={formData.building}
+                  onChange={(e) => setFormData({ ...formData, building: e.target.value })}
+                />
+              ) : (
+                <p className="text-sm text-gray-600">
+                  {resident.building}
+                </p>
+              )}
             </div>
-          </div>
-
-          <div>
-            <Label>Contato de Emergência</Label>
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <p><strong>Nome:</strong> {resident.emergencyContact.name}</p>
-              <p><strong>Telefone:</strong> {resident.emergencyContact.phone}</p>
-              <p><strong>Relacionamento:</strong> {resident.emergencyContact.relationship}</p>
-            </div>
-          </div>
-
-          {resident.notes && (
             <div>
-              <Label>Observações</Label>
-              <p className="text-sm text-gray-600">{resident.notes}</p>
+              <Label>Status</Label>
+              {isEditing ? (
+                <Select
+                  value={formData.status}
+                  onValueChange={(value: Resident['status']) =>
+                    setFormData({ ...formData, status: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Ativo</SelectItem>
+                    <SelectItem value="inactive">Inativo</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="text-sm text-gray-600">
+                  {resident.status === 'active' ? 'Ativo' : 'Inativo'}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label>Tipo de morador</Label>
+              {isEditing ? (
+                <Select
+                  value={formData.residentType}
+                  onValueChange={(value: Resident['residentType']) =>
+                    setFormData({ ...formData, residentType: value, residentTypeDescription: '' })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="owner">Proprietário</SelectItem>
+                    <SelectItem value="tenant">Inquilino</SelectItem>
+                    <SelectItem value="other">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="text-sm text-gray-600">
+                  {residentTypeLabel(resident.residentType, resident.residentTypeDescription)}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {isEditing && formData.residentType === 'other' && (
+            <div>
+              <Label>Descrição do morador</Label>
+              <Input
+                value={formData.residentTypeDescription ?? ''}
+                onChange={(e) => setFormData({ ...formData, residentTypeDescription: e.target.value })}
+                placeholder="Ex: Familiar, Funcionário..."
+              />
+            </div>
+          )}
+
+          {!isEditing && resident.residentType === 'other' && resident.residentTypeDescription && (
+            <div>
+              <Label>Descrição do morador</Label>
+              <p className="text-sm text-gray-600">{resident.residentTypeDescription}</p>
             </div>
           )}
         </div>

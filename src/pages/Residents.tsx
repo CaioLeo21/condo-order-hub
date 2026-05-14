@@ -4,46 +4,32 @@ import { Header } from "@/components/Header";
 import { ResidentCard } from "@/components/ResidentCard";
 import { AddResidentForm } from "@/components/AddResidentForm";
 import { ResidentDetailsModal } from "@/components/ResidentDetailsModal";
+import { usePermissions } from "@/hooks/usePermissions";
 import type { Resident } from "@/types/resident";
 
 const mockResidents: Resident[] = [
   {
     id: '1',
     name: 'Maria Santos',
-    cpf: '123.456.789-00',
-    email: 'maria@email.com',
     phone: '(11) 99999-9999',
     unit: '101',
     building: 'A',
-    isOwner: true,
-    emergencyContact: {
-      name: 'João Santos',
-      phone: '(11) 88888-8888',
-      relationship: 'Esposo'
-    },
-    moveInDate: '2023-01-15',
+    residentType: 'owner' as const,
     status: 'active'
   },
   {
     id: '2',
     name: 'Carlos Silva',
-    cpf: '987.654.321-00',
-    email: 'carlos@email.com',
     phone: '(11) 77777-7777',
     unit: '205',
     building: 'B',
-    isOwner: false,
-    emergencyContact: {
-      name: 'Ana Silva',
-      phone: '(11) 66666-6666',
-      relationship: 'Esposa'
-    },
-    moveInDate: '2023-06-01',
+    residentType: 'tenant' as const,
     status: 'active'
   }
 ];
 
 const Residents = () => {
+  const { canManageResidents } = usePermissions();
   const [residents, setResidents] = useState<Resident[]>(mockResidents);
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedResident, setSelectedResident] = useState<Resident | null>(null);
@@ -54,8 +40,7 @@ const Residents = () => {
     
     return residents.filter(resident =>
       resident.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      resident.unit.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      resident.email.toLowerCase().includes(searchTerm.toLowerCase())
+      resident.unit.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [residents, searchTerm]);
 
@@ -65,9 +50,9 @@ const Residents = () => {
   };
 
   const handleUpdateResident = (id: string, updatedData: Omit<Resident, 'id'>) => {
-    setResidents(residents.map(resident => 
-      resident.id === id ? { ...updatedData, id } : resident
-    ));
+    const updated = { ...updatedData, id };
+    setResidents(residents.map(resident => resident.id === id ? updated : resident));
+    setSelectedResident(updated);
   };
 
   const handleDeleteResident = (id: string) => {
@@ -77,7 +62,7 @@ const Residents = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <Header
-        onAddPackage={() => setShowAddForm(true)}
+        onAddPackage={canManageResidents ? () => setShowAddForm(true) : undefined}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         title="Moradores"
@@ -130,6 +115,8 @@ const Residents = () => {
           onClose={() => setSelectedResident(null)}
           onUpdate={handleUpdateResident}
           onDelete={handleDeleteResident}
+          canEdit={canManageResidents}
+          canDelete={canManageResidents}
         />
       )}
     </div>
