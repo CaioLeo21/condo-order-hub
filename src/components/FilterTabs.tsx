@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import type { Package } from "@/types/package";
 
@@ -9,7 +8,6 @@ interface FilterTabsProps {
     all: number;
     received: number;
     collected: number;
-    pending: number;
   };
 }
 
@@ -17,7 +15,6 @@ export function FilterTabs({ activeFilter, onFilterChange, counts }: FilterTabsP
   const tabs = [
     { key: 'all' as const, label: 'Todas', count: counts.all },
     { key: 'received' as const, label: 'Recebidas', count: counts.received },
-    { key: 'pending' as const, label: 'Pendentes', count: counts.pending },
     { key: 'collected' as const, label: 'Retiradas', count: counts.collected },
   ];
 

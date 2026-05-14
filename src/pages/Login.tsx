@@ -126,32 +126,6 @@ const Login = () => {
             </form>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Credenciais para Teste</CardTitle>
-            <CardDescription>
-              Use uma das contas abaixo (senha: 123456)
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {exampleCredentials.map((cred, index) => (
-                <div 
-                  key={index}
-                  className="p-3 bg-gray-50 rounded-md cursor-pointer hover:bg-gray-100 transition-colors"
-                  onClick={() => {
-                    setEmail(cred.email);
-                    setPassword('123456');
-                  }}
-                >
-                  <div className="font-medium text-sm text-gray-900">{cred.name}</div>
-                  <div className="text-xs text-gray-600">{cred.email}</div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

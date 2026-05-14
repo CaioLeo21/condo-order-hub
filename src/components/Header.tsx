@@ -1,10 +1,11 @@
 
 import { useState } from "react";
-import { Package, Plus, Search, Menu, X, Home, Users, Shield, Building, LogOut, User } from "lucide-react";
+import { Package, Plus, Search, Menu, X, Home, Users, Shield, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,13 +32,15 @@ export function Header({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { user, condominium, logout } = useAuth();
+  const { canAccessDoormen } = usePermissions();
 
-  const navigationItems = [
-    { path: '/', label: 'Encomendas', icon: Home },
-    { path: '/residents', label: 'Moradores', icon: Users },
-    { path: '/doormen', label: 'Porteiros', icon: Shield },
-    { path: '/properties', label: 'Imóveis', icon: Building },
+  const allNavigationItems = [
+    { path: '/', label: 'Encomendas', icon: Home, visible: true },
+    { path: '/residents', label: 'Moradores', icon: Users, visible: true },
+    { path: '/doormen', label: 'Porteiros', icon: Shield, visible: canAccessDoormen },
   ];
+
+  const navigationItems = allNavigationItems.filter((item) => item.visible);
 
   const isActivePath = (path: string) => location.pathname === path;
 

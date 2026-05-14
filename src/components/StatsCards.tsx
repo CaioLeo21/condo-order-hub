@@ -1,4 +1,3 @@
-
 import { Package, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import type { DashboardStats } from "@/types/package";
@@ -17,7 +16,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
       bgColor: "bg-blue-50",
     },
     {
-      title: "Recebidas Hoje",
+      title: "Recebidas",
       value: stats.received,
       icon: Clock,
       color: "bg-orange-500",
@@ -29,18 +28,11 @@ export function StatsCards({ stats }: StatsCardsProps) {
       icon: CheckCircle,
       color: "bg-green-500",
       bgColor: "bg-green-50",
-    },
-    {
-      title: "Pendentes",
-      value: stats.pending,
-      icon: AlertCircle,
-      color: "bg-red-500",
-      bgColor: "bg-red-50",
-    },
+    }
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6 mb-8">
       {cards.map((card, index) => (
         <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
           <CardContent className="p-6">
