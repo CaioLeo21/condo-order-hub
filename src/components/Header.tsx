@@ -1,8 +1,7 @@
 
 import { useState } from "react";
-import { Package, Plus, Search, Menu, X, Home, Users, Shield, LogOut, User } from "lucide-react";
+import { Package, Plus, Menu, X, Home, Users, Shield, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -16,16 +15,12 @@ import {
 
 interface HeaderProps {
   onAddPackage?: () => void;
-  searchTerm?: string;
-  onSearchChange?: (term: string) => void;
   title?: string;
   addButtonText?: string;
 }
 
-export function Header({ 
-  onAddPackage, 
-  searchTerm = '', 
-  onSearchChange, 
+export function Header({
+  onAddPackage,
   title,
   addButtonText = "Nova Encomenda"
 }: HeaderProps) {
@@ -72,22 +67,6 @@ export function Header({
               </h1>
             </div>
           </div>
-
-          {/* Barra de busca - Desktop */}
-          {onSearchChange && (
-            <div className="hidden md:flex flex-1 max-w-md">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  type="text"
-                  placeholder="Buscar..."
-                  value={searchTerm}
-                  onChange={(e) => onSearchChange(e.target.value)}
-                  className="pl-10 pr-4"
-                />
-              </div>
-            </div>
-          )}
 
           {/* Botões de ação - Desktop */}
           <div className="hidden md:flex items-center space-x-3">
@@ -145,21 +124,6 @@ export function Header({
           </div>
         </div>
 
-        {/* Barra de busca - Mobile */}
-        {onSearchChange && (
-          <div className="md:hidden mt-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="Buscar..."
-                value={searchTerm}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-10 pr-4"
-              />
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Menu mobile - conteúdo */}
