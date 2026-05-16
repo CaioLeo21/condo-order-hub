@@ -19,7 +19,7 @@ export function FilterTabs({ activeFilter, onFilterChange, counts }: FilterTabsP
   ];
 
   return (
-    <div className="flex space-x-2 mb-6">
+    <div className="flex space-x-2">
       {tabs.map((tab) => (
         <Button
           key={tab.key}
