@@ -1,122 +1,132 @@
-
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Plus } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
+import { PageHeader } from "@/components/PageHeader";
+import { SearchInput } from "@/components/SearchInput";
+import { FilterTabs, type FilterTab } from "@/components/FilterTabs";
+import { EmptyState } from "@/components/EmptyState";
+import { LoadingState } from "@/components/LoadingState";
+import { errorMessage } from "@/lib/api";
 import { ResidentCard } from "@/components/ResidentCard";
-import { AddResidentForm } from "@/components/AddResidentForm";
-import { ResidentDetailsModal } from "@/components/ResidentDetailsModal";
+import { ResidentDialog } from "@/components/ResidentDialog";
+import { useData } from "@/contexts/DataContext";
 import { usePermissions } from "@/hooks/usePermissions";
-import type { Resident } from "@/types/resident";
+import { formatUnit, normalizeText, unitCode } from "@/lib/format";
+import type { Resident, ResidentInput } from "@/types/resident";
 
-const mockResidents: Resident[] = [
-  {
-    id: '1',
-    name: 'Maria Santos',
-    phone: '(11) 99999-9999',
-    unit: '101',
-    building: 'A',
-    residentType: 'owner' as const,
-    status: 'active'
-  },
-  {
-    id: '2',
-    name: 'Carlos Silva',
-    phone: '(11) 77777-7777',
-    unit: '205',
-    building: 'B',
-    residentType: 'tenant' as const,
-    status: 'active'
-  }
-];
+type StatusFilter = "active" | "inactive";
 
 const Residents = () => {
   const { canManageResidents } = usePermissions();
-  const [residents, setResidents] = useState<Resident[]>(mockResidents);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [selectedResident, setSelectedResident] = useState<Resident | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const { isLoading, residents, unitKind, unitsOfResident, saveResident, setResidentStatus, deleteResident } = useData();
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("active");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [dialog, setDialog] = useState<{ mode: "new" } | { mode: "edit"; id: string } | null>(null);
 
-  const filteredResidents = useMemo(() => {
-    if (!searchTerm) return residents;
-    
-    return residents.filter(resident =>
-      resident.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      resident.unit.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [residents, searchTerm]);
+  const visible = useMemo(() => {
+    const q = normalizeText(searchTerm.trim());
+    return residents
+      .filter((r) => r.status === statusFilter)
+      .filter((r) => {
+        if (!q) return true;
+        const units = unitsOfResident(r.id);
+        return normalizeText([r.name, r.phone, ...units.map((u) => `${formatUnit(u)} ${unitCode(u)}`)].join(" ")).includes(q);
+      })
+      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+  }, [residents, statusFilter, searchTerm, unitsOfResident]);
 
-  const handleAddResident = (newResident: Omit<Resident, 'id'>) => {
-    const id = Date.now().toString();
-    setResidents([{ ...newResident, id }, ...residents]);
+  const editing = dialog?.mode === "edit" ? residents.find((r) => r.id === dialog.id) : undefined;
+  const activeCount = residents.filter((r) => r.status === "active").length;
+
+  const tabs: FilterTab<StatusFilter>[] = [
+    { key: "active", label: "Ativos", count: activeCount },
+    { key: "inactive", label: "Inativos", count: residents.length - activeCount },
+  ];
+
+  const handleSave = async (data: ResidentInput) => {
+    try {
+      await saveResident(editing?.id ?? null, data);
+      toast.success(editing ? "Morador atualizado." : "Morador cadastrado.");
+      setDialog(null);
+    } catch (err) {
+      toast.error(errorMessage(err));
+    }
   };
 
-  const handleUpdateResident = (id: string, updatedData: Omit<Resident, 'id'>) => {
-    const updated = { ...updatedData, id };
-    setResidents(residents.map(resident => resident.id === id ? updated : resident));
-    setSelectedResident(updated);
+  const handleToggle = async (r: Resident) => {
+    const next = r.status === "active" ? "inactive" : "active";
+    try {
+      await setResidentStatus(r.id, next);
+      toast.success(next === "inactive" ? `${r.name} foi inativado e não aparece mais na portaria.` : `${r.name} foi reativado.`);
+      setDialog(null);
+    } catch (err) {
+      toast.error(errorMessage(err));
+    }
   };
 
-  const handleDeleteResident = (id: string) => {
-    setResidents(residents.filter(resident => resident.id !== id));
+  const handleDelete = async (r: Resident) => {
+    try {
+      await deleteResident(r.id);
+      toast.success(`${r.name} foi excluído.`);
+      setDialog(null);
+    } catch (err) {
+      toast.error(errorMessage(err));
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <Header
-        onAddPackage={canManageResidents ? () => setShowAddForm(true) : undefined}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        title="Moradores"
-        addButtonText="Novo Morador"
-      />
+    <div className="min-h-screen bg-background">
+      <Header />
 
-      <main className="px-4 sm:px-6 py-6 sm:py-8">
-        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">
-            Moradores Cadastrados ({filteredResidents.length})
-          </h2>
+      <main className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6">
+        <PageHeader
+          title="Moradores"
+          subtitle={`${activeCount} ${activeCount === 1 ? "morador ativo" : "moradores ativos"}`}
+          actions={
+            canManageResidents && (
+              <Button onClick={() => setDialog({ mode: "new" })}>
+                <Plus aria-hidden />
+                Cadastrar morador
+              </Button>
+            )
+          }
+        />
 
-          {filteredResidents.length === 0 ? (
-            <div className="text-center py-8 sm:py-12">
-              <div className="text-gray-400 text-base sm:text-lg mb-2">
-                {searchTerm ? 'Nenhum morador encontrado' : 'Nenhum morador cadastrado'}
-              </div>
-              <p className="text-sm sm:text-base text-gray-500 px-4">
-                {searchTerm 
-                  ? 'Tente buscar por outro termo'
-                  : 'Cadastre o primeiro morador clicando no botão "Novo Morador"'
-                }
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {filteredResidents.map((resident) => (
-                <ResidentCard
-                  key={resident.id}
-                  resident={resident}
-                  onViewDetails={setSelectedResident}
-                />
-              ))}
-            </div>
-          )}
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <FilterTabs tabs={tabs} active={statusFilter} onChange={setStatusFilter} />
+          <SearchInput value={searchTerm} onChange={setSearchTerm} placeholder="Buscar por nome ou unidade" />
         </div>
+
+        {isLoading ? (
+          <LoadingState label="Carregando moradores…" />
+        ) : visible.length === 0 ? (
+          <EmptyState
+            title={searchTerm ? "Nenhum morador encontrado" : statusFilter === "inactive" ? "Nenhum morador inativo" : "Nenhum morador cadastrado"}
+            description={searchTerm ? "Confira o nome ou a unidade." : "Cadastre os moradores para registrar encomendas para eles."}
+          />
+        ) : (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {visible.map((resident) => (
+              <ResidentCard key={resident.id} resident={resident} units={unitsOfResident(resident.id)} onOpen={(r) => setDialog({ mode: "edit", id: r.id })} />
+            ))}
+          </div>
+        )}
       </main>
 
-      {showAddForm && (
-        <AddResidentForm
-          onClose={() => setShowAddForm(false)}
-          onAdd={handleAddResident}
-        />
-      )}
-
-      {selectedResident && (
-        <ResidentDetailsModal
-          resident={selectedResident}
-          isOpen={!!selectedResident}
-          onClose={() => setSelectedResident(null)}
-          onUpdate={handleUpdateResident}
-          onDelete={handleDeleteResident}
+      {dialog && (
+        <ResidentDialog
+          key={dialog.mode === "edit" ? dialog.id : "new"}
+          open
+          onClose={() => setDialog(null)}
+          resident={editing}
+          units={editing ? unitsOfResident(editing.id) : []}
+          unitKind={unitKind}
           canEdit={canManageResidents}
-          canDelete={canManageResidents}
+          onSave={handleSave}
+          onToggleStatus={editing ? () => handleToggle(editing) : undefined}
+          onDelete={editing ? () => handleDelete(editing) : undefined}
         />
       )}
     </div>
