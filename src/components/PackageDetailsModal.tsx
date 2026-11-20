@@ -1,21 +1,14 @@
-
 import { useState } from "react";
-import { Edit, Trash2, Calendar, User, Package as PackageIcon } from "lucide-react";
+import { Box, Check, ImageOff, Loader2, Mail, PackageOpen, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { errorMessage } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -24,15 +17,57 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { Package } from "@/types/package";
+import { FormField } from "@/components/FormField";
+import { OptionGroup, type OptionGroupOption } from "@/components/OptionGroup";
+import { StatusBadge } from "@/components/StatusBadge";
+import { formatWhen } from "@/lib/format";
+import { PACKAGE_KIND_LABEL, PACKAGE_SIZE_HINT, PACKAGE_SIZE_LABEL } from "@/lib/labels";
+import type { PackageEdit, PackageKind, PackageSize, PackageView } from "@/types/package";
 
 interface PackageDetailsModalProps {
-  package: Package;
+  package: PackageView;
   isOpen: boolean;
   onClose: () => void;
-  onUpdate: (id: string, updatedPackage: Omit<Package, 'id'>) => void;
-  onDelete: (id: string) => void;
+  onUpdate: (id: string, patch: PackageEdit) => Promise<void>;
+  /** Exclusão com motivo (soft delete). */
+  onDelete: (id: string, reason: string) => Promise<void>;
+  onRegisterPickup?: (pkg: PackageView) => void;
   canDelete?: boolean;
+}
+
+const KIND_OPTIONS: OptionGroupOption<PackageKind>[] = [
+  { value: "envelope", label: PACKAGE_KIND_LABEL.envelope, icon: Mail },
+  { value: "box", label: PACKAGE_KIND_LABEL.box, icon: Box },
+  { value: "bag", label: PACKAGE_KIND_LABEL.bag, icon: PackageOpen },
+  { value: "other", label: PACKAGE_KIND_LABEL.other, icon: Box },
+];
+const SIZE_OPTIONS: OptionGroupOption<PackageSize>[] = (["small", "medium", "large"] as const).map((s) => ({ value: s, label: PACKAGE_SIZE_LABEL[s], description: PACKAGE_SIZE_HINT[s] }));
+
+function Field({ label, children, mono }: { label: string; children: React.ReactNode; mono?: boolean }) {
+  return (
+    <div>
+      <dt className="text-label uppercase text-muted-foreground">{label}</dt>
+      <dd className={mono ? "mt-0.5 font-mono text-code" : "mt-0.5 text-body"}>{children}</dd>
+    </div>
+  );
+}
+
+/** Foto ou assinatura; se o arquivo não carregar (link vencido, arquivo apagado), mostra um aviso no lugar. */
+function Picture({ src, alt, caption, className }: { src: string; alt: string; caption: string; className: string }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <figure className="overflow-hidden rounded-lg border">
+      {failed ? (
+        <div className="flex aspect-video w-full flex-col items-center justify-center gap-2 bg-muted text-small text-muted-foreground">
+          <ImageOff aria-hidden className="h-5 w-5" />
+          Imagem indisponível
+        </div>
+      ) : (
+        <img src={src} alt={alt} onError={() => setFailed(true)} className={cn("aspect-video w-full", className)} />
+      )}
+      <figcaption className="border-t bg-card px-3 py-2 text-small text-muted-foreground">{caption}</figcaption>
+    </figure>
+  );
 }
 
 export function PackageDetailsModal({
@@ -41,281 +76,169 @@ export function PackageDetailsModal({
   onClose,
   onUpdate,
   onDelete,
-  canDelete = true,
+  onRegisterPickup,
+  canDelete = false,
 }: PackageDetailsModalProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    recipientName: pkg.recipientName,
-    recipientUnit: pkg.recipientUnit,
+  const initial = {
     senderCompany: pkg.senderCompany,
-    trackingCode: pkg.trackingCode || '',
-    description: pkg.description || '',
+    trackingCode: pkg.trackingCode ?? "",
+    kind: pkg.kind,
     size: pkg.size,
-    receivedBy: pkg.receivedBy
-  });
-
-  const handleSave = () => {
-    onUpdate(pkg.id, {
-      ...formData,
-      receivedDate: pkg.receivedDate,
-      receivedTime: pkg.receivedTime,
-      status: pkg.status,
-      collectedDate: pkg.collectedDate,
-      collectedTime: pkg.collectedTime
-    });
-    setIsEditing(false);
+    notes: pkg.notes ?? "",
   };
+  const [form, setForm] = useState(initial);
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  const handleCancel = () => {
-    setFormData({
-      recipientName: pkg.recipientName,
-      recipientUnit: pkg.recipientUnit,
-      senderCompany: pkg.senderCompany,
-      trackingCode: pkg.trackingCode || '',
-      description: pkg.description || '',
-      size: pkg.size,
-      receivedBy: pkg.receivedBy
-    });
-    setIsEditing(false);
-  };
-
-  const getStatusConfig = (status: Package['status']) => {
-    switch (status) {
-      case 'received':
-        return { color: 'bg-blue-100 text-blue-800', label: 'Recebida' };
-      case 'collected':
-        return { color: 'bg-green-100 text-green-800', label: 'Retirada' };
+  const handleSave = async () => {
+    setBusy(true);
+    try {
+      await onUpdate(pkg.id, {
+        senderCompany: form.senderCompany.trim(),
+        trackingCode: form.trackingCode.trim() || undefined,
+        kind: form.kind,
+        size: form.size,
+        notes: form.notes.trim() || undefined,
+      });
+      setIsEditing(false);
+    } catch (err) {
+      toast.error(errorMessage(err));
+    } finally {
+      setBusy(false);
     }
   };
 
-  const getSizeLabel = (size: Package['size']) => {
-    return size === 'small' ? 'Pequena' : size === 'medium' ? 'Média' : 'Grande';
+  const handleDelete = async () => {
+    setBusy(true);
+    try {
+      await onDelete(pkg.id, reason.trim());
+      toast.success(`Encomenda ${pkg.code} excluída.`);
+      onClose();
+    } catch (err) {
+      toast.error(errorMessage(err));
+      setBusy(false);
+    }
   };
-
-  const getSizeColor = (size: Package['size']) => {
-    if (size === 'small') return 'bg-gray-100 text-gray-800';
-    if (size === 'medium') return 'bg-yellow-100 text-yellow-800';
-    return 'bg-red-100 text-red-800';
-  };
-
-  const statusConfig = getStatusConfig(pkg.status);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-2xl overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-between pr-8">
-            <DialogTitle className="flex items-center space-x-2">
-              <PackageIcon className="h-5 w-5 text-blue-600" />
-              <span>Detalhes da Encomenda</span>
-            </DialogTitle>
-            <div className="flex items-center space-x-2">
-              {!isEditing && (
+          <div className="flex flex-col-reverse items-start gap-2 pr-8 sm:flex-row sm:justify-between sm:gap-3">
+            <div>
+              <p className="font-mono text-code text-primary">{pkg.recipientUnit}</p>
+              <DialogTitle className="font-display text-h2">{pkg.recipientName}</DialogTitle>
+              <DialogDescription className="font-mono text-small">{pkg.code}</DialogDescription>
+            </div>
+            <StatusBadge status={pkg.status} />
+          </div>
+        </DialogHeader>
+
+        {isEditing ? (
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormField label="Remetente" htmlFor="senderCompany">
+                <Input id="senderCompany" value={form.senderCompany} onChange={(e) => setForm({ ...form, senderCompany: e.target.value })} />
+              </FormField>
+              <FormField label="Código de rastreio" htmlFor="trackingCode">
+                <Input id="trackingCode" className="font-mono" value={form.trackingCode} onChange={(e) => setForm({ ...form, trackingCode: e.target.value })} />
+              </FormField>
+            </div>
+            <OptionGroup name="edit-kind" label="Tipo" columns={4} options={KIND_OPTIONS} value={form.kind} onChange={(kind) => setForm({ ...form, kind })} />
+            <OptionGroup name="edit-size" label="Tamanho" columns={3} options={SIZE_OPTIONS} value={form.size} onChange={(size) => setForm({ ...form, size })} />
+            <FormField label="Observação" htmlFor="notes">
+              <Textarea id="notes" rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+            </FormField>
+            <div className="flex justify-end gap-3 border-t pt-5">
+              <Button variant="ghost" onClick={() => { setForm(initial); setIsEditing(false); }}>Cancelar</Button>
+              <Button onClick={() => void handleSave()} disabled={!form.senderCompany.trim() || busy}>
+                {busy ? <Loader2 aria-hidden className="animate-spin" /> : <Check aria-hidden />}
+                Salvar alterações
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field label="Tipo">{PACKAGE_KIND_LABEL[pkg.kind]}</Field>
+              <Field label="Tamanho">{PACKAGE_SIZE_LABEL[pkg.size]}</Field>
+              <Field label="Remetente">{pkg.senderCompany}</Field>
+              {pkg.trackingCode && <Field label="Código de rastreio" mono>{pkg.trackingCode}</Field>}
+              <Field label="Chegada">{formatWhen(pkg.receivedAt)}</Field>
+              <Field label="Recebida por">{pkg.receivedByName}</Field>
+              {pkg.status === "collected" && pkg.collectedAt && (
                 <>
-                  <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                    <Edit className="h-4 w-4 mr-1" />
-                    Editar
-                  </Button>
-                  {canDelete && <AlertDialog>
+                  <Field label="Retirada">{formatWhen(pkg.collectedAt)}</Field>
+                  <Field label="Retirada por">
+                    {pkg.collectedBy}
+                    {pkg.collectedByDocument ? ` · ${pkg.collectedByDocument}` : ""}
+                  </Field>
+                  {pkg.deliveredByName && <Field label="Entregue por">{pkg.deliveredByName}</Field>}
+                </>
+              )}
+              {pkg.notes && <div className="sm:col-span-2"><Field label="Observação">{pkg.notes}</Field></div>}
+            </dl>
+
+            {(pkg.photoUrl || pkg.signatureUrl) && (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {pkg.photoUrl && (
+                  <Picture key={pkg.photoUrl} src={pkg.photoUrl} alt={`Foto da encomenda ${pkg.code}`} caption="Foto da chegada" className="bg-muted object-cover" />
+                )}
+                {pkg.signatureUrl && (
+                  <Picture key={pkg.signatureUrl} src={pkg.signatureUrl} alt={`Assinatura de ${pkg.collectedBy}`} caption="Assinatura na retirada" className="bg-card object-contain" />
+                )}
+              </div>
+            )}
+
+            <div className="flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:justify-between">
+              <div className="flex gap-3">
+                <Button variant="ghost" onClick={() => setIsEditing(true)}>
+                  <Pencil aria-hidden />
+                  Editar
+                </Button>
+                {canDelete && (
+                  <AlertDialog onOpenChange={(open) => !open && setReason("")}>
                     <AlertDialogTrigger asChild>
-                      <Button variant="destructive" size="sm">
-                        <Trash2 className="h-4 w-4 mr-1" />
+                      <Button variant="ghost" className="text-destructive hover:text-destructive">
+                        <Trash2 aria-hidden />
                         Excluir
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                        <AlertDialogTitle>Excluir encomenda {pkg.code}?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Tem certeza que deseja excluir esta encomenda? Esta ação não pode ser desfeita.
+                          Ela sai da lista da portaria. O registro e o motivo ficam guardados para consulta.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
+                      <FormField label="Motivo" htmlFor="delete-reason" hint="Ex.: registrada em duplicidade, devolvida ao remetente.">
+                        <Textarea id="delete-reason" rows={2} value={reason} onChange={(e) => setReason(e.target.value)} />
+                      </FormField>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                          className="bg-red-600 hover:bg-red-700"
-                          onClick={() => {
-                            onDelete(pkg.id);
-                            onClose();
-                          }}
+                        <Button
+                          variant="destructive"
+                          disabled={reason.trim().length < 3 || busy}
+                          onClick={() => void handleDelete()}
                         >
-                          Excluir
-                        </AlertDialogAction>
+                          {busy && <Loader2 aria-hidden className="animate-spin" />}
+                          Excluir encomenda
+                        </Button>
                       </AlertDialogFooter>
                     </AlertDialogContent>
-                  </AlertDialog>}
-                </>
+                  </AlertDialog>
+                )}
+              </div>
+              {pkg.status === "pending" && onRegisterPickup && (
+                <Button onClick={() => onRegisterPickup(pkg)}>
+                  <Check aria-hidden />
+                  Registrar retirada
+                </Button>
               )}
             </div>
           </div>
-        </DialogHeader>
-
-        <div className="space-y-6">
-          <div className="flex items-center gap-2">
-            <Badge className={statusConfig.color}>
-              {statusConfig.label}
-            </Badge>
-            <Badge className={`${getSizeColor(pkg.size)} font-semibold px-3`}>
-              Encomenda {getSizeLabel(pkg.size)}
-            </Badge>
-          </div>
-
-          {isEditing ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="recipientName">Nome do Destinatário *</Label>
-                  <Input
-                    id="recipientName"
-                    value={formData.recipientName}
-                    onChange={(e) => setFormData({...formData, recipientName: e.target.value})}
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="recipientUnit">Unidade *</Label>
-                  <Input
-                    id="recipientUnit"
-                    value={formData.recipientUnit}
-                    onChange={(e) => setFormData({...formData, recipientUnit: e.target.value})}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="senderCompany">Empresa Remetente *</Label>
-                  <Input
-                    id="senderCompany"
-                    value={formData.senderCompany}
-                    onChange={(e) => setFormData({...formData, senderCompany: e.target.value})}
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="trackingCode">Código de Rastreamento</Label>
-                  <Input
-                    id="trackingCode"
-                    value={formData.trackingCode}
-                    onChange={(e) => setFormData({...formData, trackingCode: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="size">Tamanho da Encomenda *</Label>
-                  <Select value={formData.size} onValueChange={(value: Package['size']) => setFormData({...formData, size: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="small">Pequena</SelectItem>
-                      <SelectItem value="medium">Média</SelectItem>
-                      <SelectItem value="large">Grande</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Label htmlFor="receivedBy">Recebido por *</Label>
-                  <Input
-                    id="receivedBy"
-                    value={formData.receivedBy}
-                    onChange={(e) => setFormData({...formData, receivedBy: e.target.value})}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="description">Descrição</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  rows={3}
-                />
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button variant="outline" onClick={handleCancel}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
-                  Salvar Alterações
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Destinatário</label>
-                    <p className="text-gray-900">{pkg.recipientName}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Unidade</label>
-                    <p className="text-gray-900">{pkg.recipientUnit}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Empresa Remetente</label>
-                    <p className="text-gray-900">{pkg.senderCompany}</p>
-                  </div>
-                  
-                  {pkg.trackingCode && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Código de Rastreamento</label>
-                      <p className="text-gray-900">{pkg.trackingCode}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Data de Recebimento</label>
-                    <p className="text-gray-900 flex items-center">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      {new Date(pkg.receivedDate).toLocaleDateString('pt-BR')} às {pkg.receivedTime}
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Recebido por</label>
-                    <p className="text-gray-900 flex items-center">
-                      <User className="h-4 w-4 mr-1" />
-                      {pkg.receivedBy}
-                    </p>
-                  </div>
-                  
-                  {pkg.status === 'collected' && pkg.collectedDate && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Data de Retirada</label>
-                      <p className="text-gray-900 flex items-center">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        {new Date(pkg.collectedDate).toLocaleDateString('pt-BR')} às {pkg.collectedTime}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {pkg.description && (
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Descrição</label>
-                  <p className="text-gray-900 mt-1">{pkg.description}</p>
-                </div>
-              )}
-
-            </div>
-          )}
-        </div>
+        )}
       </DialogContent>
     </Dialog>
   );

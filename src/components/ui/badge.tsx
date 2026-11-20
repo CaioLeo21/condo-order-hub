@@ -3,18 +3,23 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+// iPackage: selos em radius-sm, estilo label (caixa alta). Status sempre com ícone + palavra.
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex h-6 items-center gap-1 whitespace-nowrap rounded-sm border px-2 text-label uppercase transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 [&_svg]:size-3.5 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+          "border-transparent bg-primary text-primary-foreground",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "border-transparent bg-secondary text-secondary-foreground",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
+          "border-transparent bg-destructive text-destructive-foreground",
         outline: "text-foreground",
+        muted: "border-transparent bg-muted text-foreground",
+        pendente: "border-transparent bg-pendente text-pendente-foreground",
+        retirada: "border-transparent bg-retirada text-retirada-foreground",
+        alerta: "border-transparent bg-destructive/10 text-destructive",
       },
     },
     defaultVariants: {

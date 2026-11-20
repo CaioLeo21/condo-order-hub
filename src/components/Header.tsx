@@ -1,241 +1,253 @@
-
 import { useState } from "react";
-import { Package, Plus, Search, Menu, X, Home, Users, Shield, LogOut, User } from "lucide-react";
+import { Building2, CreditCard, Home, KeyRound, LayoutList, LogOut, Menu, Monitor, Moon, RotateCcw, Sun, UserCog, Users, X } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useLocation, Link } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { usePermissions } from "@/hooks/usePermissions";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/contexts/AuthContext";
+import { useStore } from "@/data/store";
+import { usePermissions } from "@/hooks/usePermissions";
+import { USE_MOCKS } from "@/config";
+import { initials } from "@/lib/format";
+import { PROFILE_LABEL, SHIFT_LABEL } from "@/lib/labels";
+import { cn } from "@/lib/utils";
+import { Wordmark } from "@/components/Logo";
 
-interface HeaderProps {
-  onAddPackage?: () => void;
-  searchTerm?: string;
-  onSearchChange?: (term: string) => void;
-  title?: string;
-  addButtonText?: string;
-}
+const THEMES = [
+  { value: "light", label: "Claro", icon: Sun },
+  { value: "dark", label: "Escuro", icon: Moon },
+  { value: "system", label: "Do sistema", icon: Monitor },
+];
 
-export function Header({ 
-  onAddPackage, 
-  searchTerm = '', 
-  onSearchChange, 
-  title,
-  addButtonText = "Nova Encomenda"
-}: HeaderProps) {
+/** Barra superior (AppBar): marca, condomínio, navegação e usuário logado. */
+export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { user, condominium, logout } = useAuth();
-  const { canAccessDoormen } = usePermissions();
+  const { reset } = useStore();
+  const { isOwner, canManageUsers } = usePermissions();
+  const { theme, setTheme } = useTheme();
 
-  const allNavigationItems = [
-    { path: '/', label: 'Encomendas', icon: Home, visible: true },
-    { path: '/residents', label: 'Moradores', icon: Users, visible: true },
-    { path: '/doormen', label: 'Porteiros', icon: Shield, visible: canAccessDoormen },
-  ];
+  const navigationItems = isOwner
+    ? [
+        { path: "/admin/condominios", label: "Condomínios", icon: Building2 },
+        { path: "/admin/planos", label: "Planos", icon: LayoutList },
+        { path: "/admin/faturamento", label: "Faturamento", icon: CreditCard },
+      ]
+    : [
+        { path: "/", label: "Encomendas", icon: Home },
+        { path: "/residents", label: "Moradores", icon: Users },
+        ...(canManageUsers ? [{ path: "/users", label: "Usuários", icon: UserCog }] : []),
+      ];
 
-  const navigationItems = allNavigationItems.filter((item) => item.visible);
+  const isActive = (path: string) =>
+    path === "/" ? location.pathname === "/" || location.pathname.startsWith("/packages") : location.pathname.startsWith(path);
 
-  const isActivePath = (path: string) => location.pathname === path;
+  const roleLine = user ? [PROFILE_LABEL[user.profile], user.shift ? SHIFT_LABEL[user.shift] : null].filter(Boolean).join(" · ") : "";
+  const placeLine = isOwner ? "Administração" : condominium?.name;
 
   const handleLogout = () => {
-    logout();
+    void logout();
     setIsMobileMenuOpen(false);
   };
 
+  const handleReset = () => {
+    if (window.confirm("Voltar aos dados de exemplo? Tudo que você cadastrou neste navegador será apagado.")) {
+      reset();
+      setIsMobileMenuOpen(false);
+    }
+  };
+
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-      <div className="px-4 sm:px-6 py-4">
-        <div className="flex items-center justify-between gap-4">
-          {/* Logo e informações do condomínio */}
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Package className="h-6 w-6 text-blue-600" />
-            </div>
-            <div className="hidden sm:block">
-              <h1 className="text-lg font-semibold text-gray-900">
-                {title || "Encomendas"}
-              </h1>
-              {condominium && (
-                <p className="text-sm text-gray-600">{condominium.name}</p>
-              )}
-            </div>
-            <div className="sm:hidden">
-              <h1 className="text-base font-semibold text-gray-900">
-                {title || "Encomendas"}
-              </h1>
-            </div>
-          </div>
-
-          {/* Barra de busca - Desktop */}
-          {onSearchChange && (
-            <div className="hidden md:flex flex-1 max-w-md">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  type="text"
-                  placeholder="Buscar..."
-                  value={searchTerm}
-                  onChange={(e) => onSearchChange(e.target.value)}
-                  className="pl-10 pr-4"
-                />
-              </div>
-            </div>
+    <header className="sticky top-0 z-50 border-b bg-card">
+      <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-4 px-4 sm:px-6">
+        <div className="flex min-w-0 items-center gap-4">
+          <Link
+            to={isOwner ? "/admin/condominios" : "/"}
+            className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="iPackage — início"
+          >
+            <Wordmark />
+          </Link>
+          {placeLine && (
+            <span className="hidden items-center gap-2 whitespace-nowrap border-l pl-4 text-sm text-muted-foreground lg:inline-flex">
+              <Building2 aria-hidden className="size-4" />
+              {placeLine}
+            </span>
           )}
-
-          {/* Botões de ação - Desktop */}
-          <div className="hidden md:flex items-center space-x-3">
-            {onAddPackage && (
-              <Button 
-                onClick={onAddPackage}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                {addButtonText}
-              </Button>
-            )}
-            
-            {/* Menu do usuário */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <User className="h-4 w-4 mr-2" />
-                  {user?.name}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{user?.name}</p>
-                  <p className="text-xs text-gray-500">{user?.email}</p>
-                  <p className="text-xs text-gray-500 capitalize">{user?.role === 'admin' ? 'Administrador' : 'Porteiro'}</p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sair
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Menu mobile - botão */}
-          <div className="md:hidden flex items-center space-x-2">
-            {onAddPackage && (
-              <Button 
-                onClick={onAddPackage}
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-            </Button>
-          </div>
+          {USE_MOCKS && (
+            <Badge variant="muted" className="hidden xl:inline-flex" title="Os dados ficam só neste navegador">
+              Dados de exemplo
+            </Badge>
+          )}
         </div>
 
-        {/* Barra de busca - Mobile */}
-        {onSearchChange && (
-          <div className="md:hidden mt-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="Buscar..."
-                value={searchTerm}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-10 pr-4"
-              />
-            </div>
-          </div>
-        )}
+        <nav className="hidden items-center gap-1 md:flex" aria-label="Principal">
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                aria-current={isActive(item.path) ? "page" : undefined}
+                className={cn(
+                  "inline-flex h-control-sm items-center gap-2 rounded-md px-3 text-sm font-semibold transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  isActive(item.path) ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                <Icon aria-hidden className="size-4" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="hidden items-center gap-2 rounded-md p-1 pr-2 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:inline-flex"
+              >
+                <span aria-hidden className="inline-flex size-9 items-center justify-center rounded-full bg-secondary text-[13px] font-bold text-secondary-foreground">
+                  {initials(user?.name ?? "")}
+                </span>
+                <span className="leading-tight">
+                  <span className="block text-sm font-semibold">{user?.name}</span>
+                  <span className="block text-xs text-muted-foreground">{roleLine}</span>
+                </span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-60">
+              <div className="px-2 py-1.5">
+                <p className="text-sm font-medium">{user?.name}</p>
+                <p className="font-mono text-xs text-muted-foreground">Matrícula {user?.matricula}</p>
+                <p className="text-xs text-muted-foreground">{roleLine}</p>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/account">
+                  <KeyRound className="mr-2 size-4" />
+                  Minha conta
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-label uppercase text-muted-foreground">Tema</DropdownMenuLabel>
+              <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+                {THEMES.map((t) => (
+                  <DropdownMenuRadioItem key={t.value} value={t.value}>
+                    <t.icon className="mr-2 size-4" aria-hidden />
+                    {t.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+              {USE_MOCKS && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleReset}>
+                    <RotateCcw className="mr-2 size-4" />
+                    Restaurar dados de exemplo
+                  </DropdownMenuItem>
+                </>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                <LogOut className="mr-2 size-4" />
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="md:hidden"
+            aria-label={isMobileMenuOpen ? "Fechar menu" : "Abrir menu"}
+            aria-expanded={isMobileMenuOpen}
+            onClick={() => setIsMobileMenuOpen((open) => !open)}
+          >
+            {isMobileMenuOpen ? <X /> : <Menu />}
+          </Button>
+        </div>
       </div>
 
-      {/* Menu mobile - conteúdo */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-200 bg-white">
-          <div className="px-4 py-4 space-y-3">
-            {/* Informações do usuário */}
-            <div className="pb-3 border-b border-gray-200">
-              <p className="font-medium text-gray-900">{user?.name}</p>
-              <p className="text-sm text-gray-500">{user?.email}</p>
-              <p className="text-sm text-gray-500 capitalize">{user?.role === 'admin' ? 'Administrador' : 'Porteiro'}</p>
-              {condominium && (
-                <p className="text-sm text-blue-600 mt-1">{condominium.name}</p>
-              )}
+        <div className="border-t bg-card md:hidden">
+          <div className="space-y-3 px-4 py-4">
+            <div className="border-b pb-3">
+              <p className="font-semibold">{user?.name}</p>
+              <p className="text-sm text-muted-foreground">
+                {roleLine} · <span className="font-mono">{user?.matricula}</span>
+              </p>
+              {placeLine && <p className="mt-1 text-sm text-primary">{placeLine}</p>}
             </div>
-
-            {/* Navegação */}
-            <nav className="space-y-2">
-              {navigationItems.map((item) => {
+            <nav className="space-y-1" aria-label="Principal">
+              {[...navigationItems, { path: "/account", label: "Minha conta", icon: KeyRound }].map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                      isActivePath(item.path)
-                        ? 'bg-blue-50 text-blue-700 font-medium'
-                        : 'text-gray-700 hover:bg-gray-50'
-                    }`}
                     onClick={() => setIsMobileMenuOpen(false)}
+                    className={cn(
+                      "flex min-h-control-md items-center gap-3 rounded-md px-3 transition-colors",
+                      isActive(item.path) ? "bg-secondary font-semibold text-secondary-foreground" : "text-foreground hover:bg-muted",
+                    )}
                   >
-                    <Icon className="h-5 w-5" />
-                    <span>{item.label}</span>
+                    <Icon aria-hidden className="size-5" />
+                    {item.label}
                   </Link>
                 );
               })}
             </nav>
-
-            {/* Logout */}
-            <div className="pt-3 border-t border-gray-200">
+            <div className="flex gap-1 rounded-md bg-muted p-1" role="radiogroup" aria-label="Tema">
+              {THEMES.map((t) => (
+                <button
+                  key={t.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={theme === t.value}
+                  onClick={() => setTheme(t.value)}
+                  className={cn(
+                    "flex h-control-sm flex-1 items-center justify-center gap-1.5 rounded-[8px] text-sm font-semibold",
+                    theme === t.value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground",
+                  )}
+                >
+                  <t.icon aria-hidden className="size-4" />
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            <div className="space-y-1 border-t pt-3">
+              {USE_MOCKS && (
+                <button type="button" onClick={handleReset} className="flex min-h-control-md w-full items-center gap-3 rounded-md px-3 text-foreground hover:bg-muted">
+                  <RotateCcw aria-hidden className="size-5" />
+                  Restaurar dados de exemplo
+                </button>
+              )}
               <button
+                type="button"
                 onClick={handleLogout}
-                className="flex items-center space-x-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 w-full transition-colors"
+                className="flex min-h-control-md w-full items-center gap-3 rounded-md px-3 text-destructive hover:bg-muted"
               >
-                <LogOut className="h-5 w-5" />
-                <span>Sair</span>
+                <LogOut aria-hidden className="size-5" />
+                Sair
               </button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Navegação Desktop */}
-      <div className="hidden md:block border-t border-gray-200">
-        <nav className="px-6">
-          <div className="flex space-x-8">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center space-x-2 py-4 border-b-2 transition-colors ${
-                    isActivePath(item.path)
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="font-medium">{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
-      </div>
     </header>
   );
 }

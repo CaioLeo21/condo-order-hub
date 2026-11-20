@@ -2,95 +2,102 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Design system iPackage — fonte da verdade: docs/design-system/tokens.json.
+   Todas as cores em HSL (formato shadcn). Não use cores fixas nos componentes. */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
+    --background: 42.9 28% 95.1%;
+    --foreground: 153.3 15.8% 11.2%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 153.3 15.8% 11.2%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 153.3 15.8% 11.2%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 172.1 73.1% 20.4%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 172.3 75.6% 16.1%;
+    --secondary: 160 27.3% 91.4%;
+    --secondary-foreground: 172.4 74.1% 16.7%;
+    --muted: 40 24% 90.2%;
+    --muted-foreground: 140 4.8% 36.7%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --accent: 40 24% 90.2%;
+    --accent-foreground: 153.3 15.8% 11.2%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --destructive: 4.2 76.5% 40%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 38.8 20% 83.3%;
+    --input: 128.6 2.8% 50.4%;
+    --ring: 172.1 73.1% 20.4%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* iPackage */
+    --kraft: 33 64.8% 47.8%;
+    --kraft-foreground: 153.3 15.8% 11.2%;
+    --pendente: 36.9 83% 90.8%;
+    --pendente-foreground: 31.1 90.3% 28.4%;
+    --retirada: 161.1 37.3% 90%;
+    --retirada-foreground: 171.6 78.2% 19.8%;
+    --shadow-sm: 0 1px 2px rgba(24, 33, 29, 0.06);
+    --shadow-md: 0 8px 24px rgba(24, 33, 29, 0.12);
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 153.3 15.8% 11.2%;
+    --sidebar-primary: 172.1 73.1% 20.4%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 40 24% 90.2%;
+    --sidebar-accent-foreground: 153.3 15.8% 11.2%;
+    --sidebar-border: 38.8 20% 83.3%;
+    --sidebar-ring: 172.1 73.1% 20.4%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --radius: 10px;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 150 10.5% 7.5%;
+    --foreground: 144 15.2% 93.5%;
+    --card: 144 9.4% 10.4%;
+    --card-foreground: 144 15.2% 93.5%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --popover: 144 9.4% 10.4%;
+    --popover-foreground: 144 15.2% 93.5%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --primary: 168.9 49.5% 57.3%;
+    --primary-foreground: 162.9 74.5% 9.2%;
+    --primary-hover: 168.3 51.5% 66.9%;
+    --secondary: 164.2 24.7% 15.1%;
+    --secondary-foreground: 167.6 50% 77.3%;
+    --muted: 145.7 9.3% 14.7%;
+    --muted-foreground: 144 5.6% 65.1%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --accent: 145.7 9.3% 14.7%;
+    --accent-foreground: 144 15.2% 93.5%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --destructive: 4.1 92.5% 68.8%;
+    --destructive-foreground: 5.1 71.4% 9.6%;
+    --border: 150 8.2% 19.2%;
+    --input: 144 4.5% 43.9%;
+    --ring: 168.9 49.5% 57.3%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    /* iPackage */
+    --kraft: 34.1 73.5% 58.6%;
+    --kraft-foreground: 36 62.5% 6.3%;
+    --pendente: 36 52.6% 14.9%;
+    --pendente-foreground: 34.6 84.3% 72.5%;
+    --retirada: 165 41.2% 13.3%;
+    --retirada-foreground: 166.7 55.1% 69.4%;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.55);
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 144 9.4% 10.4%;
+    --sidebar-foreground: 144 15.2% 93.5%;
+    --sidebar-primary: 168.9 49.5% 57.3%;
+    --sidebar-primary-foreground: 162.9 74.5% 9.2%;
+    --sidebar-accent: 145.7 9.3% 14.7%;
+    --sidebar-accent-foreground: 144 15.2% 93.5%;
+    --sidebar-border: 150 8.2% 19.2%;
+    --sidebar-ring: 168.9 49.5% 57.3%;
   }
 }
 
@@ -100,6 +107,6 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
   }
 }
