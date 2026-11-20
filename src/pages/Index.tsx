@@ -1,194 +1,157 @@
-
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
-import { StatsCards } from "@/components/StatsCards";
-import { FilterTabs } from "@/components/FilterTabs";
+import { PageHeader } from "@/components/PageHeader";
+import { FilterTabs, type FilterTab } from "@/components/FilterTabs";
+import { SearchInput } from "@/components/SearchInput";
 import { PackageCard } from "@/components/PackageCard";
-import { AddPackageForm } from "@/components/AddPackageForm";
 import { PackageDetailsModal } from "@/components/PackageDetailsModal";
+import { EmptyState } from "@/components/EmptyState";
+import { LoadingState } from "@/components/LoadingState";
+import { useData } from "@/contexts/DataContext";
 import { usePermissions } from "@/hooks/usePermissions";
-import type { Package, DashboardStats } from "@/types/package";
+import { daysSince, normalizeText, unitCode } from "@/lib/format";
+import type { PackageStatus, PackageView } from "@/types/package";
 
-const mockPackages: Package[] = [
-  {
-    id: '1',
-    recipientName: 'Maria Santos',
-    recipientUnit: '101',
-    senderCompany: 'Mercado Livre',
-    trackingCode: 'ML123456789',
-    receivedDate: '2024-01-15',
-    receivedTime: '14:30',
-    status: 'received',
-    description: 'Smartphone Samsung',
-    size: 'medium',
-    receivedBy: 'Porteiro João',
-  },
-  {
-    id: '2',
-    recipientName: 'Carlos Silva',
-    recipientUnit: '205',
-    senderCompany: 'Amazon',
-    trackingCode: 'AMZ987654321',
-    receivedDate: '2024-01-15',
-    receivedTime: '09:15',
-    status: 'collected',
-    description: 'Livros',
-    size: 'small',
-    receivedBy: 'Porteiro Pedro',
-    collectedDate: '2024-01-15',
-    collectedTime: '16:45',
-  },
-  {
-    id: '3',
-    recipientName: 'Ana Oliveira',
-    recipientUnit: '302',
-    senderCompany: 'Magazine Luiza',
-    receivedDate: '2024-01-14',
-    receivedTime: '11:20',
-    status: 'received',
-    description: 'Eletrodoméstico',
-    size: 'large',
-    receivedBy: 'Porteiro João',
-  },
-];
+type Period = "today" | "7d" | "30d" | "all";
+const PERIOD_DAYS: Record<Period, number> = { today: 0, "7d": 6, "30d": 29, all: Infinity };
 
+/** Tela "Encomendas" da portaria: pendentes (da mais antiga para a mais nova) e retiradas. */
 const Index = () => {
+  const navigate = useNavigate();
   const { canDeletePackages } = usePermissions();
-  const [packages, setPackages] = useState<Package[]>(mockPackages);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'all' | Package['status']>('all');
+  const { isLoading, packages, getUnit, updatePackage, deletePackage } = useData();
+  const [tab, setTab] = useState<PackageStatus>("pending");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [period, setPeriod] = useState<Period>("7d");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const filteredPackages = useMemo(() => {
-    let filtered = packages;
+  const pending = useMemo(
+    () => packages.filter((p) => p.status === "pending").sort((a, b) => a.receivedAt.localeCompare(b.receivedAt)),
+    [packages],
+  );
+  const collected = useMemo(
+    () => packages.filter((p) => p.status === "collected").sort((a, b) => (b.collectedAt ?? "").localeCompare(a.collectedAt ?? "")),
+    [packages],
+  );
 
-    // Filtro por busca
-    if (searchTerm) {
-      filtered = filtered.filter(pkg =>
-        pkg.recipientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pkg.recipientUnit.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pkg.trackingCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pkg.senderCompany.toLowerCase().includes(searchTerm.toLowerCase())
+  const collectedInPeriod = useMemo(
+    () => collected.filter((p) => p.collectedAt && daysSince(p.collectedAt) <= PERIOD_DAYS[period]),
+    [collected, period],
+  );
+
+  const visible = useMemo(() => {
+    const list = tab === "pending" ? pending : collectedInPeriod;
+    const q = normalizeText(searchTerm.trim());
+    if (!q) return list;
+    return list.filter((p) => {
+      const unit = getUnit(p.unitId);
+      const haystack = normalizeText(
+        [
+          p.recipientUnit,
+          unit ? unitCode(unit) : "",
+          p.recipientName,
+          p.code,
+          p.trackingCode ?? "",
+          p.senderCompany,
+          p.receivedByName,
+          p.deliveredByName ?? "",
+          p.collectedBy ?? "",
+        ].join(" "),
       );
-    }
+      return haystack.includes(q);
+    });
+  }, [tab, pending, collectedInPeriod, searchTerm, getUnit]);
 
-    // Filtro por status
-    if (activeFilter !== 'all') {
-      filtered = filtered.filter(pkg => pkg.status === activeFilter);
-    }
+  const statusTabs: FilterTab<PackageStatus>[] = [
+    { key: "pending", label: "Pendentes", count: pending.length },
+    { key: "collected", label: "Retiradas", count: collected.length },
+  ];
+  const periodTabs: FilterTab<Period>[] = [
+    { key: "today", label: "Hoje" },
+    { key: "7d", label: "7 dias" },
+    { key: "30d", label: "30 dias" },
+    { key: "all", label: "Tudo" },
+  ];
 
-    return filtered;
-  }, [packages, searchTerm, activeFilter]);
+  const oldestDays = pending.length ? daysSince(pending[0].receivedAt) : 0;
+  const subtitle = isLoading
+    ? "Carregando…"
+    : `${pending.length} ${pending.length === 1 ? "pendente" : "pendentes"}` +
+    (oldestDays > 0 ? ` · a mais antiga chegou há ${oldestDays} ${oldestDays === 1 ? "dia" : "dias"}` : "");
 
-  const stats: DashboardStats = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
-    return {
-      total: packages.length,
-      received: packages.filter(pkg => pkg.receivedDate === today && pkg.status === 'received').length,
-      collected: packages.filter(pkg => pkg.status === 'collected').length,
-    };
-  }, [packages]);
-
-  const filterCounts = useMemo(() => ({
-    all: packages.length,
-    received: packages.filter(pkg => pkg.status === 'received').length,
-    collected: packages.filter(pkg => pkg.status === 'collected').length,
-  }), [packages]);
-
-  const handleAddPackage = (newPackage: Omit<Package, 'id'>) => {
-    const id = Date.now().toString();
-    setPackages([{ ...newPackage, id }, ...packages]);
-  };
-
-  const handleStatusChange = (id: string, status: Package['status']) => {
-    setPackages(packages.map(pkg => 
-      pkg.id === id 
-        ? { 
-            ...pkg, 
-            status,
-            ...(status === 'collected' ? {
-              collectedDate: new Date().toISOString().split('T')[0],
-              collectedTime: new Date().toTimeString().split(' ')[0].substring(0, 5)
-            } : {})
-          }
-        : pkg
-    ));
-  };
-
-  const handleUpdatePackage = (id: string, updatedData: Omit<Package, 'id'>) => {
-    setPackages(packages.map(pkg => 
-      pkg.id === id ? { ...updatedData, id } : pkg
-    ));
-  };
-
-  const handleDeletePackage = (id: string) => {
-    setPackages(packages.filter(pkg => pkg.id !== id));
-  };
-
-  const handleViewDetails = (pkg: Package) => {
-    setSelectedPackage(pkg);
-  };
+  const selected = selectedId ? packages.find((p) => p.id === selectedId) ?? null : null;
+  const goToPickup = (pkg: PackageView) => navigate(`/packages/${pkg.id}/pickup`);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <Header
-        onAddPackage={() => setShowAddForm(true)}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-      />
+    <div className="min-h-screen bg-background">
+      <Header />
 
-      <main className="px-6 py-8">
-        <StatsCards stats={stats} />
+      <main className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6">
+        <PageHeader
+          title="Encomendas"
+          subtitle={subtitle}
+          actions={
+            <Button onClick={() => navigate("/packages/new")}>
+              <Plus aria-hidden />
+              Registrar encomenda
+            </Button>
+          }
+        />
 
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <FilterTabs
-            activeFilter={activeFilter}
-            onFilterChange={setActiveFilter}
-            counts={filterCounts}
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-3">
+            <FilterTabs tabs={statusTabs} active={tab} onChange={setTab} />
+            {tab === "collected" && <FilterTabs tabs={periodTabs} active={period} onChange={setPeriod} />}
+          </div>
+          <SearchInput
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder={tab === "pending" ? "Buscar por unidade, morador ou nº" : "Buscar por unidade, morador ou porteiro"}
           />
-
-          {filteredPackages.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-gray-400 text-lg mb-2">
-                {searchTerm ? 'Nenhuma encomenda encontrada' : 'Nenhuma encomenda registrada'}
-              </div>
-              <p className="text-gray-500">
-                {searchTerm 
-                  ? 'Tente buscar por outro termo'
-                  : 'Registre a primeira encomenda clicando no botão "Nova Encomenda"'
-                }
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-              {filteredPackages.map((pkg) => (
-                <PackageCard
-                  key={pkg.id}
-                  package={pkg}
-                  onStatusChange={handleStatusChange}
-                  onViewDetails={handleViewDetails}
-                />
-              ))}
-            </div>
-          )}
         </div>
+
+        {isLoading ? (
+          <LoadingState label="Carregando encomendas…" />
+        ) : visible.length === 0 ? (
+          searchTerm ? (
+            <EmptyState title="Nada encontrado" description="Confira a unidade ou o nome do morador." />
+          ) : tab === "pending" ? (
+            <EmptyState
+              title="Nenhuma encomenda pendente"
+              description="Quando chegar uma, registre aqui."
+              action={
+                <Button onClick={() => navigate("/packages/new")}>
+                  <Plus aria-hidden />
+                  Registrar encomenda
+                </Button>
+              }
+            />
+          ) : (
+            <EmptyState
+              title={period === "all" ? "Nenhuma retirada ainda" : "Nenhuma retirada no período"}
+              description={period === "all" ? "As encomendas retiradas aparecem aqui com quem retirou e quando." : "Escolha um período maior para ver as retiradas mais antigas."}
+            />
+          )
+        ) : (
+          <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {visible.map((pkg) => (
+              <PackageCard key={pkg.id} package={pkg} onOpen={(p) => setSelectedId(p.id)} onRegisterPickup={goToPickup} />
+            ))}
+          </div>
+        )}
       </main>
 
-      {showAddForm && (
-        <AddPackageForm
-          onClose={() => setShowAddForm(false)}
-          onAdd={handleAddPackage}
-        />
-      )}
-
-      {selectedPackage && (
+      {selected && (
         <PackageDetailsModal
-          package={selectedPackage}
-          isOpen={!!selectedPackage}
-          onClose={() => setSelectedPackage(null)}
-          onUpdate={handleUpdatePackage}
-          onDelete={handleDeletePackage}
+          package={selected}
+          isOpen={!!selected}
+          onClose={() => setSelectedId(null)}
+          onUpdate={updatePackage}
+          onDelete={deletePackage}
+          onRegisterPickup={goToPickup}
           canDelete={canDeletePackages}
         />
       )}

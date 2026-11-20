@@ -1,114 +1,92 @@
-
-import { Package, Calendar, User, Building, Truck, CheckCircle, Clock } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Box, Check, Mail, PackageOpen, Ruler, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import type { Package as PackageType } from "@/types/package";
+import { StatusBadge } from "@/components/StatusBadge";
+import { formatWhen } from "@/lib/format";
+import { PACKAGE_KIND_LABEL, PACKAGE_SIZE_LABEL } from "@/lib/labels";
+import { cn } from "@/lib/utils";
+import type { PackageKind, PackageView } from "@/types/package";
+
+const KIND_ICON: Record<PackageKind, LucideIcon> = {
+  envelope: Mail,
+  box: Box,
+  bag: PackageOpen,
+  other: Box,
+};
 
 interface PackageCardProps {
-  package: PackageType;
-  onStatusChange: (id: string, status: PackageType['status']) => void;
-  onViewDetails: (pkg: PackageType) => void;
+  package: PackageView;
+  /** Abre os detalhes ao clicar no card. */
+  onOpen?: (pkg: PackageView) => void;
+  /** Mostra "Registrar retirada" quando a encomenda está pendente. */
+  onRegisterPickup?: (pkg: PackageView) => void;
+  className?: string;
 }
 
-export function PackageCard({ package: pkg, onStatusChange, onViewDetails }: PackageCardProps) {
-  const getStatusConfig = (status: PackageType['status']) => {
-    switch (status) {
-      case 'received':
-        return {
-          color: 'bg-blue-100 text-blue-800',
-          icon: Clock,
-          label: 'Recebida'
-        };
-      case 'collected':
-        return {
-          color: 'bg-green-100 text-green-800',
-          icon: CheckCircle,
-          label: 'Retirada'
-        };
-    }
-  };
+/** A encomenda na lista da portaria: unidade, morador e status no topo; detalhes; ação de retirada. */
+export function PackageCard({ package: pkg, onOpen, onRegisterPickup, className }: PackageCardProps) {
+  const KindIcon = KIND_ICON[pkg.kind];
+  const rows: [string, string][] = [["Remetente", pkg.senderCompany], ["Chegada", formatWhen(pkg.receivedAt)]];
+  if (pkg.status === "pending") rows.push(["Recebida por", pkg.receivedByName]);
+  if (pkg.status === "collected" && pkg.collectedAt) {
+    rows.push(["Retirada", `${formatWhen(pkg.collectedAt)}${pkg.collectedBy ? ` · ${pkg.collectedBy}` : ""}`]);
+  }
+  if (pkg.notes) rows.push(["Obs.", pkg.notes]);
 
-  const getSizeColor = (size: PackageType['size']) => {
-    switch (size) {
-      case 'small':
-        return 'bg-gray-100 text-gray-800';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'large':
-        return 'bg-red-100 text-red-800';
-    }
-  };
-
-  const statusConfig = getStatusConfig(pkg.status);
-  const StatusIcon = statusConfig.icon;
+  const interactive = Boolean(onOpen);
 
   return (
-    <Card
-      className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer h-full"
-      onClick={() => onViewDetails(pkg)}
+    <article
+      className={cn(
+        "flex flex-col gap-4 rounded-lg border bg-card p-4 text-card-foreground shadow-sm transition-colors sm:p-5",
+        interactive && "cursor-pointer hover:border-input focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background",
+        className,
+      )}
+      onClick={interactive ? () => onOpen?.(pkg) : undefined}
+      onKeyDown={interactive ? (e) => { if (e.key === "Enter") onOpen?.(pkg); } : undefined}
+      tabIndex={interactive ? 0 : undefined}
+      aria-label={interactive ? `Encomenda ${pkg.code} para ${pkg.recipientName}, ${pkg.recipientUnit}` : undefined}
     >
-      <CardContent className="p-4 sm:p-6 flex flex-col h-full">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-50 rounded-lg flex-shrink-0">
-              <Package className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{pkg.recipientName}</h3>
-              <p className="text-xs sm:text-sm text-gray-600">Unidade {pkg.recipientUnit}</p>
-            </div>
-          </div>
-          <Badge className={`${statusConfig.color} flex-shrink-0`}>
-            <StatusIcon className="h-3 w-3 mr-1" />
-            <span className="hidden sm:inline">{statusConfig.label}</span>
-          </Badge>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="truncate whitespace-nowrap font-mono text-code text-primary">{pkg.recipientUnit}</div>
+          <h3 className="mt-0.5 truncate font-display text-h2">{pkg.recipientName}</h3>
         </div>
+        <StatusBadge status={pkg.status} className="shrink-0" />
+      </div>
 
-        <div className="space-y-2 mb-4 flex-1">
-          <div className="flex items-center text-xs sm:text-sm text-gray-600">
-            <Truck className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0" />
-            <span className="truncate">{pkg.senderCompany}</span>
-          </div>
-          
-          <div className="flex items-center text-xs sm:text-sm text-gray-600">
-            <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0" />
-            <span>{new Date(pkg.receivedDate).toLocaleDateString('pt-BR')} às {pkg.receivedTime}</span>
-          </div>
-          
-          <div className="flex items-center text-xs sm:text-sm text-gray-600">
-            <User className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0" />
-            <span className="truncate">Recebido por: {pkg.receivedBy}</span>
-          </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="inline-flex h-6 items-center gap-1 rounded-sm bg-muted px-2 text-small">
+          <KindIcon aria-hidden className="size-3.5 text-muted-foreground" />
+          {PACKAGE_KIND_LABEL[pkg.kind]}
+        </span>
+        <span className="inline-flex h-6 items-center gap-1 rounded-sm bg-muted px-2 text-small">
+          <Ruler aria-hidden className="size-3.5 text-muted-foreground" />
+          {PACKAGE_SIZE_LABEL[pkg.size]}
+        </span>
+        <span className="font-mono text-small text-muted-foreground">{pkg.code}</span>
+      </div>
 
-          {pkg.trackingCode && (
-            <div className="flex items-center text-xs sm:text-sm text-gray-600">
-              <Building className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0" />
-              <span className="truncate">Código: {pkg.trackingCode}</span>
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mt-auto pt-4 border-t border-gray-100">
-          <Badge className={`${getSizeColor(pkg.size)} font-semibold px-3`}>
-            Encomenda {pkg.size === 'small' ? 'Pequena' :
-             pkg.size === 'medium' ? 'Média' : 'Grande'}
-          </Badge>
-
-          <div className="min-h-[32px] flex items-center" onClick={(e) => e.stopPropagation()}>
-            {pkg.status === 'received' && (
-              <Button
-                size="sm"
-                onClick={() => onStatusChange(pkg.id, 'collected')}
-                className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto text-xs"
-              >
-                <span className="sm:hidden">Retirada</span>
-                <span className="hidden sm:inline">Marcar como Retirada</span>
-              </Button>
-            )}
+      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-small">
+        {rows.map(([term, value]) => (
+          <div key={term} className="contents">
+            <dt className="text-muted-foreground">{term}</dt>
+            <dd className="min-w-0 truncate text-foreground">{value}</dd>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        ))}
+      </dl>
+
+      {pkg.status === "pending" && onRegisterPickup && (
+        <Button
+          className="mt-auto w-full"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRegisterPickup(pkg);
+          }}
+        >
+          <Check aria-hidden />
+          Registrar retirada
+        </Button>
+      )}
+    </article>
   );
 }
