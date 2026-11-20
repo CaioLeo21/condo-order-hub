@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta name='viewport' content='width=device-width, initial-scale=1'>
+<style>:root{--background:#f6f4ef;--foreground:#18211d;--card:#ffffff;--card-foreground:var(--foreground);--muted:#ece8e0;--muted-foreground:#59625c;--border:#ddd7cc;--input:#7d847e;--primary:#0e5a50;--primary-foreground:#ffffff;--primary-hover:#0a4840;--secondary:#e3efeb;--secondary-foreground:#0b4a42;--kraft:#c9822b;--kraft-foreground:#18211d;--pendente:#fbecd4;--pendente-foreground:#8a4b07;--retirada:#dcefe9;--retirada-foreground:#0b5a4f;--destructive:#b42318;--destructive-foreground:#ffffff;--ring:#0e5a50;--shadow-sm:0 1px 2px rgba(24, 33, 29, 0.06);--shadow-md:0 8px 24px rgba(24, 33, 29, 0.12);--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-6:24px;--space-8:32px;--space-12:48px;--radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-full:9999px;--control-sm:36px;--control-md:44px;--control-lg:52px;--font-display:"Bricolage Grotesque", "Public Sans", system-ui, sans-serif;--font-sans:"Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;--font-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;}
+:root[data-theme="dark"]{--background:#111513;--foreground:#ecf1ee;--card:#181d1a;--card-foreground:var(--foreground);--muted:#222925;--muted-foreground:#a1aba5;--border:#2d3531;--input:#6b756f;--primary:#5cc8b4;--primary-foreground:#06291f;--primary-hover:#7fd6c5;--secondary:#1d302b;--secondary-foreground:#a8e2d6;--kraft:#e3a048;--kraft-foreground:#1a1206;--pendente:#3a2a12;--pendente-foreground:#f4c27e;--retirada:#143029;--retirada-foreground:#86dcc9;--destructive:#f97066;--destructive-foreground:#2a0a07;--ring:#5cc8b4;--shadow-sm:0 1px 2px rgba(0, 0, 0, 0.4);--shadow-md:0 8px 24px rgba(0, 0, 0, 0.55);--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-6:24px;--space-8:32px;--space-12:48px;--radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-full:9999px;--control-sm:36px;--control-md:44px;--control-lg:52px;--font-display:"Bricolage Grotesque", "Public Sans", system-ui, sans-serif;--font-sans:"Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;--font-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--background:#111513;--foreground:#ecf1ee;--card:#181d1a;--card-foreground:var(--foreground);--muted:#222925;--muted-foreground:#a1aba5;--border:#2d3531;--input:#6b756f;--primary:#5cc8b4;--primary-foreground:#06291f;--primary-hover:#7fd6c5;--secondary:#1d302b;--secondary-foreground:#a8e2d6;--kraft:#e3a048;--kraft-foreground:#1a1206;--pendente:#3a2a12;--pendente-foreground:#f4c27e;--retirada:#143029;--retirada-foreground:#86dcc9;--destructive:#f97066;--destructive-foreground:#2a0a07;--ring:#5cc8b4;--shadow-sm:0 1px 2px rgba(0, 0, 0, 0.4);--shadow-md:0 8px 24px rgba(0, 0, 0, 0.55);--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-6:24px;--space-8:32px;--space-12:48px;--radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-full:9999px;--control-sm:36px;--control-md:44px;--control-lg:52px;--font-display:"Bricolage Grotesque", "Public Sans", system-ui, sans-serif;--font-sans:"Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;--font-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;}}</style>
+<style>@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=JetBrains+Mono:wght@500&family=Public+Sans:wght@400;500;600;700&display=swap");
+
+body { margin: 0; font-family: var(--font-sans); font-size: 15px; line-height: 22px; background: var(--background); color: var(--foreground); -webkit-font-smoothing: antialiased; }
+.ip-row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; padding: var(--space-4); }
+.ip-stack { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-4); }
+
+/* Button */
+.ip-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); font: inherit; font-weight: 600; border: 1px solid transparent; border-radius: var(--radius-md); cursor: pointer; white-space: nowrap; transition: background-color .14s ease, border-color .14s ease, box-shadow .14s ease; }
+.ip-btn--sm { height: var(--control-sm); padding: 0 var(--space-3); font-size: 14px; }
+.ip-btn--md { height: var(--control-md); padding: 0 var(--space-4); font-size: 15px; }
+.ip-btn--lg { height: var(--control-lg); padding: 0 var(--space-6); font-size: 16px; }
+.ip-btn--primary { background: var(--primary); color: var(--primary-foreground); }
+.ip-btn--primary:hover { background: var(--primary-hover); }
+.ip-btn--secondary { background: var(--secondary); color: var(--secondary-foreground); }
+.ip-btn--secondary:hover { border-color: var(--secondary-foreground); }
+.ip-btn--ghost { background: transparent; color: var(--foreground); border-color: var(--border); }
+.ip-btn--ghost:hover { background: var(--muted); }
+.ip-btn--destructive { background: var(--destructive); color: var(--destructive-foreground); }
+.ip-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring); }
+.ip-btn:disabled { opacity: .5; cursor: not-allowed; }
+.ip-btn--block { width: 100%; }
+.ip-btn__icon { display: inline-flex; }
+.ip-btn__icon svg { width: 20px; height: 20px; }
+
+/* Input */
+.ip-field { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.ip-field__label { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); }
+.ip-input { height: var(--control-md); padding: 0 var(--space-3); font: inherit; color: var(--foreground); background: var(--card); border: 1px solid var(--input); border-radius: var(--radius-md); transition: box-shadow .14s ease, border-color .14s ease; }
+.ip-input::placeholder { color: var(--muted-foreground); }
+.ip-input:focus-visible { outline: none; border-color: var(--ring); box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring); }
+.ip-input--mono { font-family: var(--font-mono); font-size: 14px; }
+.ip-field--error .ip-input { border-color: var(--destructive); }
+.ip-field__hint { font-size: 13px; line-height: 18px; color: var(--muted-foreground); }
+.ip-field__error { font-size: 13px; line-height: 18px; color: var(--destructive); font-weight: 500; }
+
+/* StatusBadge */
+.ip-badge { display: inline-flex; align-items: center; gap: var(--space-1); height: 24px; padding: 0 var(--space-2); border-radius: var(--radius-sm); font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+.ip-badge svg { width: 14px; height: 14px; flex: none; }
+.ip-badge--pendente { background: var(--pendente); color: var(--pendente-foreground); }
+.ip-badge--retirada { background: var(--retirada); color: var(--retirada-foreground); }
+
+/* PackageCard */
+.ip-card { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-4); background: var(--card); color: var(--card-foreground); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); max-width: 420px; }
+.ip-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.ip-card__unit { font-family: var(--font-mono); font-size: 14px; line-height: 20px; font-weight: 500; color: var(--primary); }
+.ip-card__resident { font-family: var(--font-display); font-size: 20px; line-height: 28px; font-weight: 600; margin: 2px 0 0; }
+.ip-card__meta { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.ip-chip { display: inline-flex; align-items: center; gap: var(--space-1); height: 24px; padding: 0 var(--space-2); border-radius: var(--radius-sm); background: var(--muted); color: var(--foreground); font-size: 13px; line-height: 18px; }
+.ip-chip svg { width: 14px; height: 14px; color: var(--muted-foreground); }
+.ip-card__detail { display: grid; grid-template-columns: auto 1fr; gap: var(--space-1) var(--space-3); margin: 0; font-size: 13px; line-height: 18px; }
+.ip-card__detail dt { color: var(--muted-foreground); }
+.ip-card__detail dd { margin: 0; color: var(--foreground); }
+.ip-card__code { font-family: var(--font-mono); font-size: 13px; color: var(--muted-foreground); }
+
+/* Icon */
+.ip-icon { display: inline-flex; flex: none; }
+.ip-icon svg { width: 1em; height: 1em; }
+
+/* AppBar */
+.ip-appbar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); height: 64px; padding: 0 var(--space-6); background: var(--card); border-bottom: 1px solid var(--border); }
+.ip-appbar__brand { display: flex; align-items: center; gap: var(--space-4); min-width: 0; }
+.ip-wordmark { font-family: var(--font-display); font-size: 22px; line-height: 28px; font-weight: 700; letter-spacing: -.02em; color: var(--foreground); }
+.ip-wordmark__i { color: var(--kraft); }
+.ip-appbar__condo { display: inline-flex; align-items: center; gap: var(--space-2); padding-left: var(--space-4); border-left: 1px solid var(--border); font-size: 14px; color: var(--muted-foreground); white-space: nowrap; }
+.ip-appbar__condo svg { width: 16px; height: 16px; }
+.ip-appbar__right { display: flex; align-items: center; gap: var(--space-4); }
+.ip-appbar__user { display: inline-flex; align-items: center; gap: var(--space-2); }
+.ip-appbar__name { display: block; font-size: 14px; line-height: 18px; font-weight: 600; }
+.ip-appbar__shift { display: block; font-size: 12px; line-height: 16px; color: var(--muted-foreground); }
+.ip-avatar { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: var(--radius-full); background: var(--secondary); color: var(--secondary-foreground); font-size: 13px; font-weight: 700; }
+
+/* OptionGroup */
+.ip-options { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.ip-options--cols { display: grid; }
+.ip-option { display: flex; align-items: center; gap: var(--space-2); min-height: var(--control-md); padding: var(--space-2) var(--space-3); font: inherit; text-align: left; color: var(--foreground); background: var(--card); border: 1px solid var(--input); border-radius: var(--radius-md); cursor: pointer; transition: background-color .14s ease, border-color .14s ease, box-shadow .14s ease; }
+.ip-option:hover { background: var(--muted); }
+.ip-option--on { background: var(--secondary); border-color: var(--primary); color: var(--secondary-foreground); box-shadow: inset 0 0 0 1px var(--primary); }
+.ip-option--on:hover { background: var(--secondary); }
+.ip-option:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring); }
+.ip-option__icon { display: inline-flex; color: var(--muted-foreground); }
+.ip-option--on .ip-option__icon { color: var(--secondary-foreground); }
+.ip-option__icon svg, .ip-option__check svg { width: 18px; height: 18px; }
+.ip-option__text { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.ip-option__label { font-size: 15px; line-height: 20px; font-weight: 600; }
+.ip-option__desc { font-size: 13px; line-height: 18px; color: var(--muted-foreground); }
+.ip-option--on .ip-option__desc { color: var(--secondary-foreground); }
+.ip-option__check { display: inline-flex; width: 18px; }
+
+/* SignaturePad */
+.ip-sign__head { display: flex; align-items: center; justify-content: space-between; }
+.ip-sign { position: relative; background: var(--card); border: 1px dashed var(--input); border-radius: var(--radius-lg); color: var(--foreground); }
+.ip-sign__canvas { display: block; width: 100%; touch-action: none; cursor: crosshair; border-radius: var(--radius-lg); }
+.ip-sign__line { position: absolute; left: var(--space-6); right: var(--space-6); bottom: 40px; border-top: 1px solid var(--border); pointer-events: none; }
+.ip-sign__hint { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); display: flex; align-items: center; justify-content: center; gap: var(--space-2); font-size: 14px; color: var(--muted-foreground); pointer-events: none; }
+.ip-sign__hint svg { width: 18px; height: 18px; }
+
+/* Telas (layout de página) */
+.ip-page { min-height: 100vh; background: var(--background); }
+.ip-main { max-width: 1200px; margin: 0 auto; padding: var(--space-6); }
+.ip-pagehead { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-6); }
+.ip-h1 { margin: 0; font-family: var(--font-display); font-size: 28px; line-height: 34px; font-weight: 700; letter-spacing: -.01em; }
+.ip-h2 { margin: 0; font-family: var(--font-display); font-size: 20px; line-height: 28px; font-weight: 600; }
+.ip-sub { margin: var(--space-1) 0 0; font-size: 13px; line-height: 18px; color: var(--muted-foreground); }
+.ip-crumb { display: inline-flex; align-items: center; gap: var(--space-1); margin-bottom: var(--space-2); font-size: 13px; color: var(--primary); text-decoration: none; font-weight: 600; background: none; border: 0; padding: 0; cursor: pointer; }
+.ip-crumb svg { width: 16px; height: 16px; }
+.ip-panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); padding: var(--space-6); }
+</style>
+<script src='https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js'></script>
+<script>/* @ds-bundle: {"format":4,"namespace":"IPackage","components":[{"name":"Button"},{"name":"Input"},{"name":"StatusBadge"},{"name":"PackageCard"},{"name":"AppBar"},{"name":"OptionGroup"},{"name":"SignaturePad"},{"name":"Icon"}]} */
+(function () {
+  var React = window.React;
+  var h = React.createElement;
+
+  function cx() {
+    return Array.prototype.filter.call(arguments, Boolean).join(" ");
+  }
+  function omit(obj, keys) {
+    var out = {};
+    for (var k in obj) if (Object.prototype.hasOwnProperty.call(obj, k) && keys.indexOf(k) === -1) out[k] = obj[k];
+    return out;
+  }
+  function svg(paths) {
+    return h("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.75, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true },
+      paths.map(function (d, i) { return h("path", { key: i, d: d }); }));
+  }
+  var icons = {
+    clock: function () { return svg(["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z", "M12 7v5l3 2"]); },
+    check: function () { return svg(["M20 6 9 17l-5-5"]); },
+    box: function () { return svg(["M21 8 12 3 3 8v8l9 5 9-5V8z", "M3 8l9 5 9-5", "M12 13v8"]); },
+    mail: function () { return svg(["M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z", "m3 7 9 6 9-6"]); },
+    ruler: function () { return svg(["M3 17 17 3l4 4L7 21z", "M7 13l2 2", "M10 10l2 2", "M13 7l2 2"]); },
+    search: function () { return svg(["M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z", "m21 21-4.3-4.3"]); },
+    plus: function () { return svg(["M12 5v14", "M5 12h14"]); },
+    camera: function () { return svg(["M4 7h3l2-3h6l2 3h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z", "M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"]); },
+    pen: function () { return svg(["M12 20h9", "M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"]); },
+    building: function () { return svg(["M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17", "M3 21h18", "M10 7h1", "M13 7h1", "M10 11h1", "M13 11h1", "M10 15h4v6h-4z"]); },
+    user: function () { return svg(["M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "M4 21a8 8 0 0 1 16 0"]); },
+    arrowLeft: function () { return svg(["M19 12H5", "m12 19-7-7 7-7"]); }
+  };
+
+  function Icon(props) {
+    var f = icons[props.name];
+    return f ? h("span", { className: cx("ip-icon", props.className), "aria-hidden": true }, f()) : null;
+  }
+
+  function Button(props) {
+    var variant = props.variant || "primary";
+    var size = props.size || "md";
+    var rest = omit(props, ["variant", "size", "block", "icon", "className", "children"]);
+    return h("button", Object.assign({ type: "button" }, rest, {
+      className: cx("ip-btn", "ip-btn--" + variant, "ip-btn--" + size, props.block && "ip-btn--block", props.className)
+    }), props.icon ? h("span", { className: "ip-btn__icon", "aria-hidden": true }, props.icon) : null, props.children);
+  }
+
+  var seq = 0;
+  function Input(props) {
+    var autoId = React.useId ? React.useId() : "ip-" + (++seq);
+    var id = props.id || autoId;
+    var hintId = id + "-hint";
+    var rest = omit(props, ["label", "hint", "error", "mono", "className", "id"]);
+    var describedBy = props.error || props.hint ? hintId : undefined;
+    return h("div", { className: cx("ip-field", props.error && "ip-field--error", props.className) },
+      props.label ? h("label", { className: "ip-field__label", htmlFor: id }, props.label) : null,
+      h("input", Object.assign({}, rest, { id: id, className: cx("ip-input", props.mono && "ip-input--mono"), "aria-invalid": props.error ? true : undefined, "aria-describedby": describedBy })),
+      props.error ? h("span", { id: hintId, className: "ip-field__error" }, props.error)
+        : props.hint ? h("span", { id: hintId, className: "ip-field__hint" }, props.hint) : null);
+  }
+
+  var STATUS = {
+    pendente: { label: "Pendente", icon: icons.clock },
+    retirada: { label: "Retirada", icon: icons.check }
+  };
+  function StatusBadge(props) {
+    var s = STATUS[props.status] || STATUS.pendente;
+    return h("span", { className: cx("ip-badge", "ip-badge--" + (STATUS[props.status] ? props.status : "pendente"), props.className) },
+      s.icon(), props.children || s.label);
+  }
+
+  var TIPO_ICON = { Envelope: icons.mail, Caixa: icons.box, Embalagem: icons.box, Outros: icons.box };
+  function PackageCard(props) {
+    var status = props.status || "pendente";
+    var tipoIcon = TIPO_ICON[props.tipo] || icons.box;
+    var rows = [];
+    if (props.remetente) rows.push(["Remetente", props.remetente]);
+    if (props.chegadaEm) rows.push(["Chegada", props.chegadaEm]);
+    if (props.recebidoPor) rows.push(["Recebida por", props.recebidoPor]);
+    if (status === "retirada" && props.retiradaEm) rows.push(["Retirada", props.retiradaEm + (props.retiradoPor ? " · " + props.retiradoPor : "")]);
+    if (props.observacao) rows.push(["Obs.", props.observacao]);
+    return h("article", { className: cx("ip-card", props.className) },
+      h("div", { className: "ip-card__head" },
+        h("div", null,
+          h("div", { className: "ip-card__unit" }, props.unidade),
+          h("h3", { className: "ip-card__resident" }, props.morador)),
+        h(StatusBadge, { status: status })),
+      h("div", { className: "ip-card__meta" },
+        props.tipo ? h("span", { className: "ip-chip" }, tipoIcon(), props.tipo) : null,
+        props.tamanho ? h("span", { className: "ip-chip" }, icons.ruler(), props.tamanho) : null,
+        props.codigo ? h("span", { className: "ip-card__code" }, props.codigo) : null),
+      rows.length ? h("dl", { className: "ip-card__detail" },
+        rows.map(function (r) { return [h("dt", { key: r[0] + "t" }, r[0]), h("dd", { key: r[0] + "d" }, r[1])]; })) : null,
+      status === "pendente" && props.onRegistrarRetirada
+        ? h(Button, { variant: "primary", block: true, icon: icons.check(), onClick: props.onRegistrarRetirada }, "Registrar retirada")
+        : null);
+  }
+
+  function initials(name) {
+    return String(name || "").split(/\s+/).filter(Boolean).slice(0, 2).map(function (p) { return p[0].toUpperCase(); }).join("");
+  }
+  function AppBar(props) {
+    return h("header", { className: cx("ip-appbar", props.className) },
+      h("div", { className: "ip-appbar__brand" },
+        h("span", { className: "ip-wordmark" }, h("span", { className: "ip-wordmark__i" }, "i"), "Package"),
+        props.condominio ? h("span", { className: "ip-appbar__condo" }, icons.building(), props.condominio) : null),
+      h("div", { className: "ip-appbar__right" },
+        props.children,
+        props.usuario ? h("span", { className: "ip-appbar__user" },
+          h("span", { className: "ip-avatar", "aria-hidden": true }, initials(props.usuario)),
+          h("span", null, h("span", { className: "ip-appbar__name" }, props.usuario),
+            props.turno ? h("span", { className: "ip-appbar__shift" }, props.perfil ? props.perfil + " · " + props.turno : props.turno) : null)) : null));
+  }
+
+  function OptionGroup(props) {
+    var options = props.options || [];
+    function pick(v) { if (props.onChange) props.onChange(v); }
+    function onKey(e, i) {
+      var d = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+      if (!d) return;
+      e.preventDefault();
+      var n = (i + d + options.length) % options.length;
+      pick(options[n].value);
+      var sib = e.currentTarget.parentNode.children[n];
+      if (sib) sib.focus();
+    }
+    var selIndex = -1;
+    options.forEach(function (o, i) { if (o.value === props.value) selIndex = i; });
+    return h("div", { className: cx("ip-field", props.className) },
+      props.label ? h("span", { className: "ip-field__label", id: props.name + "-label" }, props.label) : null,
+      h("div", { className: cx("ip-options", props.columns && "ip-options--cols"), role: "radiogroup", "aria-labelledby": props.label ? props.name + "-label" : undefined,
+        style: props.columns ? { gridTemplateColumns: "repeat(" + props.columns + ", minmax(0, 1fr))" } : undefined },
+        options.map(function (o, i) {
+          var on = o.value === props.value;
+          return h("button", {
+            key: o.value, type: "button", role: "radio", "aria-checked": on,
+            tabIndex: on || (selIndex === -1 && i === 0) ? 0 : -1,
+            className: cx("ip-option", on && "ip-option--on"),
+            onClick: function () { pick(o.value); }, onKeyDown: function (e) { onKey(e, i); }
+          },
+            o.icon && icons[o.icon] ? h("span", { className: "ip-option__icon", "aria-hidden": true }, icons[o.icon]()) : null,
+            h("span", { className: "ip-option__text" }, h("span", { className: "ip-option__label" }, o.label),
+              o.description ? h("span", { className: "ip-option__desc" }, o.description) : null),
+            h("span", { className: "ip-option__check", "aria-hidden": true }, on ? icons.check() : null));
+        })),
+      props.error ? h("span", { className: "ip-field__error" }, props.error) : null);
+  }
+
+  function SignaturePad(props) {
+    var ref = React.useRef(null);
+    var drawing = React.useRef(false);
+    var last = React.useRef(null);
+    var st = React.useState(false), has = st[0], setHas = st[1];
+    var height = props.height || 180;
+    React.useEffect(function () {
+      var c = ref.current; if (!c) return;
+      var dpr = window.devicePixelRatio || 1;
+      c.width = c.clientWidth * dpr; c.height = height * dpr;
+      var ctx = c.getContext("2d"); ctx.scale(dpr, dpr);
+    }, [height]);
+    function pos(e) { var r = ref.current.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+    function down(e) { drawing.current = true; last.current = pos(e); ref.current.setPointerCapture && ref.current.setPointerCapture(e.pointerId); }
+    function move(e) {
+      if (!drawing.current) return;
+      var p = pos(e), ctx = ref.current.getContext("2d");
+      ctx.strokeStyle = getComputedStyle(ref.current).color; ctx.lineWidth = 2.25; ctx.lineCap = "round"; ctx.lineJoin = "round";
+      ctx.beginPath(); ctx.moveTo(last.current.x, last.current.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+      last.current = p;
+      if (!has) { setHas(true); if (props.onChange) props.onChange(true); }
+    }
+    function up() { drawing.current = false; }
+    function clear() {
+      var c = ref.current; c.getContext("2d").clearRect(0, 0, c.width, c.height);
+      setHas(false); if (props.onChange) props.onChange(false);
+    }
+    return h("div", { className: cx("ip-field", props.className) },
+      h("div", { className: "ip-sign__head" },
+        h("span", { className: "ip-field__label" }, props.label || "Assinatura"),
+        h(Button, { variant: "ghost", size: "sm", onClick: clear, disabled: !has }, "Limpar")),
+      h("div", { className: "ip-sign" },
+        h("canvas", { ref: ref, className: "ip-sign__canvas", style: { height: height + "px" }, role: "img", "aria-label": has ? "Assinatura registrada" : "Área para assinar com o dedo",
+          onPointerDown: down, onPointerMove: move, onPointerUp: up, onPointerLeave: up }),
+        h("span", { className: "ip-sign__line", "aria-hidden": true }),
+        has ? null : h("span", { className: "ip-sign__hint", "aria-hidden": true }, icons.pen(), "Assine aqui com o dedo")));
+  }
+
+  window.IPackage = Object.assign(window.IPackage || {}, {
+    Button: Button,
+    Input: Input,
+    StatusBadge: StatusBadge,
+    PackageCard: PackageCard,
+    AppBar: AppBar,
+    OptionGroup: OptionGroup,
+    SignaturePad: SignaturePad,
+    Icon: Icon
+  });
+})();
+</script>
+<meta charset="utf-8"><title>Portaria · Encomendas</title>
+<style>
+  .toolbar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-6); }
+  .tabs { display: inline-flex; gap: var(--space-1); padding: var(--space-1); background: var(--muted); border-radius: var(--radius-md); }
+  .tab { display: inline-flex; align-items: center; gap: var(--space-2); height: var(--control-sm); padding: 0 var(--space-4); font: inherit; font-size: 14px; font-weight: 600; color: var(--muted-foreground); background: transparent; border: 0; border-radius: calc(var(--radius-md) - 2px); cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--card); color: var(--foreground); box-shadow: var(--shadow-sm); }
+  .tab:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring); }
+  .count { font-family: var(--font-mono); font-size: 12px; padding: 0 6px; border-radius: var(--radius-sm); background: var(--background); color: var(--foreground); }
+  .search { position: relative; width: 340px; }
+  .search .ip-icon { position: absolute; left: var(--space-3); top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--muted-foreground); pointer-events: none; }
+  .search .ip-input { width: 100%; box-sizing: border-box; padding-left: 40px; }
+  .ip-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-6); align-items: start; }
+  .ip-grid .ip-card { max-width: none; }
+  .empty { padding: var(--space-12) var(--space-6); text-align: center; color: var(--muted-foreground); }
+  .empty .ip-h2 { color: var(--foreground); margin-bottom: var(--space-2); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+  var I = window.IPackage, h = React.createElement;
+  var SEED = [
+    { id: 297, unidade: 'Bloco A · Apto 101', morador: 'Lúcia Andrade', tipo: 'Caixa', tamanho: 'Grande', remetente: 'Amazon', chegadaEm: '11/10 às 16:40', recebidoPor: 'Ricardo (Noturno)', idade: 3 },
+    { id: 305, unidade: 'Bloco C · Apto 402', morador: 'Thiago Lima', tipo: 'Envelope', tamanho: 'Pequeno', remetente: 'Banco do Brasil', chegadaEm: 'Ontem às 10:15', recebidoPor: 'Carlos (Vespertino)', idade: 1 },
+    { id: 311, unidade: 'Bloco B · Apto 204', morador: 'Rafael Souza', tipo: 'Embalagem', tamanho: 'Médio', remetente: 'Shopee', chegadaEm: 'Ontem às 18:02', recebidoPor: 'Ricardo (Noturno)', idade: 1 },
+    { id: 316, unidade: 'Bloco A · Apto 303', morador: 'Patrícia Gomes', tipo: 'Caixa', tamanho: 'Pequeno', remetente: 'Magalu', chegadaEm: 'Hoje às 09:20', recebidoPor: 'Carlos (Vespertino)', idade: 0 },
+    { id: 318, unidade: 'Bloco B · Apto 204', morador: 'Mariana Souza', tipo: 'Caixa', tamanho: 'Médio', remetente: 'Mercado Livre', chegadaEm: 'Hoje às 14:32', recebidoPor: 'Carlos (Vespertino)', idade: 0 },
+    { id: 319, unidade: 'Bloco D · Apto 12', morador: 'Eduardo Rocha', tipo: 'Outros', tamanho: 'Grande', remetente: 'Leroy Merlin', chegadaEm: 'Hoje às 15:01', recebidoPor: 'Carlos (Vespertino)', observacao: 'Duas caixas amarradas', idade: 0 }
+  ];
+  var RETIRADAS = [
+    { id: 290, unidade: 'Bloco C · Apto 101', morador: 'Sônia Prado', tipo: 'Caixa', tamanho: 'Médio', remetente: 'Correios', chegadaEm: 'Ontem às 11:30', retiradaEm: 'Hoje às 08:05', retiradoPor: 'Sônia Prado' },
+    { id: 302, unidade: 'Bloco A · Apto 204', morador: 'Felipe Nunes', tipo: 'Envelope', tamanho: 'Pequeno', remetente: 'Detran', chegadaEm: 'Ontem às 14:10', retiradaEm: 'Hoje às 12:47', retiradoPor: 'Carla Nunes' }
+  ];
+  function code(id) { return '#000' + id; }
+  function norm(s) { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+
+  function App() {
+    var a = React.useState('pendentes'), tab = a[0], setTab = a[1];
+    var b = React.useState(''), q = b[0], setQ = b[1];
+    var c = React.useState(SEED), pend = c[0], setPend = c[1];
+    var d = React.useState(RETIRADAS), ret = d[0], setRet = d[1];
+    function retirar(item) {
+      setPend(pend.filter(function (p) { return p.id !== item.id; }));
+      setRet([Object.assign({}, item, { retiradaEm: 'Agora', retiradoPor: item.morador })].concat(ret));
+    }
+    var list = (tab === 'pendentes' ? pend : ret).filter(function (p) {
+      if (!q) return true; var n = norm(q).replace(/\s+/g, ' ');
+      return norm(p.unidade + ' ' + p.morador + ' ' + code(p.id)).indexOf(n) !== -1;
+    });
+    var maisAntiga = pend.length ? pend.reduce(function (m, p) { return p.idade > m ? p.idade : m; }, 0) : 0;
+    return h('div', { className: 'ip-page' },
+      h(I.AppBar, { condominio: 'Residencial Jardins', usuario: 'Carlos Menezes', perfil: 'Porteiro', turno: 'Vespertino' }),
+      h('main', { className: 'ip-main' },
+        h('div', { className: 'ip-pagehead' },
+          h('div', null,
+            h('h1', { className: 'ip-h1' }, 'Encomendas'),
+            h('p', { className: 'ip-sub' }, pend.length + ' pendentes' + (maisAntiga ? ' · a mais antiga chegou há ' + maisAntiga + (maisAntiga === 1 ? ' dia' : ' dias') : ''))),
+          h(I.Button, { icon: h(I.Icon, { name: 'plus' }) }, 'Registrar encomenda')),
+        h('div', { className: 'toolbar' },
+          h('div', { className: 'tabs', role: 'tablist' },
+            h('button', { className: 'tab', role: 'tab', 'aria-selected': tab === 'pendentes', onClick: function () { setTab('pendentes'); } }, 'Pendentes', h('span', { className: 'count' }, pend.length)),
+            h('button', { className: 'tab', role: 'tab', 'aria-selected': tab === 'retiradas', onClick: function () { setTab('retiradas'); } }, 'Retiradas hoje', h('span', { className: 'count' }, ret.length))),
+          h('div', { className: 'search' },
+            h(I.Icon, { name: 'search' }),
+            h('input', { className: 'ip-input', type: 'search', placeholder: 'Buscar por unidade, morador ou nº', 'aria-label': 'Buscar encomendas', value: q, onChange: function (e) { setQ(e.target.value); } }))),
+        list.length
+          ? h('div', { className: 'ip-grid' }, list.map(function (p) {
+              return h(I.PackageCard, Object.assign({ key: p.id, codigo: code(p.id), status: tab === 'pendentes' ? 'pendente' : 'retirada' }, p,
+                tab === 'pendentes' ? { onRegistrarRetirada: function () { retirar(p); } } : {}));
+            }))
+          : h('div', { className: 'empty' },
+              h('h2', { className: 'ip-h2' }, q ? 'Nada encontrado' : 'Nenhuma encomenda pendente'),
+              h('p', null, q ? 'Confira a unidade ou o nome do morador.' : 'Quando chegar uma, registre aqui.'))));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>
