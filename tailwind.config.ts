@@ -1,5 +1,7 @@
 import type { Config } from "tailwindcss";
+import animate from "tailwindcss-animate";
 
+// Design system iPackage — tokens em docs/design-system/tokens.json, variáveis em src/index.css.
 export default {
 	darkMode: ["class"],
 	content: [
@@ -26,7 +28,8 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					foreground: 'hsl(var(--primary-foreground))',
+					hover: 'hsl(var(--primary-hover))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -52,6 +55,18 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				kraft: {
+					DEFAULT: 'hsl(var(--kraft))',
+					foreground: 'hsl(var(--kraft-foreground))'
+				},
+				pendente: {
+					DEFAULT: 'hsl(var(--pendente))',
+					foreground: 'hsl(var(--pendente-foreground))'
+				},
+				retirada: {
+					DEFAULT: 'hsl(var(--retirada))',
+					foreground: 'hsl(var(--retirada-foreground))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -63,10 +78,36 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				}
 			},
+			fontFamily: {
+				display: ['"Bricolage Grotesque"', '"Public Sans"', 'system-ui', 'sans-serif'],
+				sans: ['"Public Sans"', 'system-ui', '-apple-system', '"Segoe UI"', 'sans-serif'],
+				mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+			},
+			fontSize: {
+				display: ['40px', { lineHeight: '44px', fontWeight: '700', letterSpacing: '-0.02em' }],
+				h1: ['28px', { lineHeight: '34px', fontWeight: '700', letterSpacing: '-0.01em' }],
+				h2: ['20px', { lineHeight: '28px', fontWeight: '600' }],
+				body: ['15px', { lineHeight: '22px' }],
+				small: ['13px', { lineHeight: '18px' }],
+				label: ['12px', { lineHeight: '16px', fontWeight: '600', letterSpacing: '0.04em' }],
+				code: ['14px', { lineHeight: '20px', fontWeight: '500' }],
+			},
 			borderRadius: {
-				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				lg: '14px', // radius-lg — cards, modais
+				md: 'var(--radius)', // radius-md (10px) — botões, inputs
+				sm: '6px' // radius-sm — badges, chips
+			},
+			boxShadow: {
+				sm: 'var(--shadow-sm)',
+				md: 'var(--shadow-md)',
+			},
+			height: {
+				'control-sm': '36px',
+				'control-md': '44px',
+				'control-lg': '52px',
+			},
+			minHeight: {
+				'control-md': '44px',
 			},
 			keyframes: {
 				'accordion-down': {
@@ -92,5 +133,5 @@ export default {
 			}
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [animate],
 } satisfies Config;
